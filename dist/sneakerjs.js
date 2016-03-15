@@ -1,9 +1,7 @@
 "use strict";
-var c = console;
+angular.module('SneakerJS', []);
 
-angular.module('Relate', []);
-
-angular.module('Relate').factory('BaseContainer', ["$q", function($q) {
+angular.module('SneakerJS').factory('BaseContainer', ["$q", function($q) {
   /*
   A collection has an internal index of the objects in the database.
   What it uses as keys and values is up to the derived class.
@@ -37,7 +35,7 @@ angular.module('Relate').factory('BaseContainer', ["$q", function($q) {
   return BaseContainer;
 }]);
 
-angular.module('Relate').factory('Collection', ["util", "$q", "BaseContainer", function(util, $q, BaseContainer) {
+angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer", function(util, $q, BaseContainer) {
 
   var Collection = function(db, singleItemName, fieldNames, options)    {var self = this;
     var options = options || {};
@@ -176,7 +174,7 @@ angular.module('Relate').factory('Collection', ["util", "$q", "BaseContainer", f
   }
 */
     
-angular.module('Relate').factory('ManyToManyRelationship', ["$q", "BaseContainer", "util", function($q, BaseContainer, util) {
+angular.module('SneakerJS').factory('ManyToManyRelationship', ["$q", "BaseContainer", "util", function($q, BaseContainer, util) {
   
   var ManyToManyRelationship = function(db, leftCollection, rightCollection, options)    {var self = this;
     var options = options || {};
@@ -382,7 +380,7 @@ angular.module('Relate').factory('ManyToManyRelationship', ["$q", "BaseContainer
   return ManyToManyRelationship;
 }]);
 
-angular.module('Relate').service('model', ["$q", "Collection", "ParentChildRelationship", "ManyToManyRelationship", function($q, Collection, ParentChildRelationship, ManyToManyRelationship) {
+angular.module('SneakerJS').service('model', ["$q", "Collection", "ParentChildRelationship", "ManyToManyRelationship", function($q, Collection, ParentChildRelationship, ManyToManyRelationship) {
 
   var self = this,
       __db,
@@ -586,7 +584,7 @@ angular.module('Relate').service('model', ["$q", "Collection", "ParentChildRelat
 
 
 
-angular.module('Relate').factory('ParentChildRelationship', ["$q", "BaseContainer", "ValueRegister", "util", function($q, BaseContainer, ValueRegister, util) {
+angular.module('SneakerJS').factory('ParentChildRelationship', ["$q", "BaseContainer", "ValueRegister", "util", function($q, BaseContainer, ValueRegister, util) {
 
   var ParentChildRelationship = function(db, parentCollection, childCollection, options)    {var self = this;
     var options = options || {};
@@ -696,7 +694,7 @@ angular.module('Relate').factory('ParentChildRelationship', ["$q", "BaseContaine
 }]);
 
 
-angular.module('Relate').factory('QueuedResponseDb', ["$q", "ValueRegister", function($q, ValueRegister) {
+angular.module('SneakerJS').factory('QueuedResponseDb', ["$q", "ValueRegister", function($q, ValueRegister) {
   /*
   post put get remove
   */
@@ -808,7 +806,7 @@ Linking:
       
 */
 
-angular.module('Relate').factory('ParentRelationshipNew', ["$q", function($q) {
+angular.module('SneakerJS').factory('ParentRelationshipNew', ["$q", function($q) {
 
   var Relationship = function(propertyName, parentCollection, parentPopertyName) {
     this.propertyName = propertyName;
@@ -841,7 +839,7 @@ angular.module('Relate').factory('ParentRelationshipNew', ["$q", function($q) {
 
 
 
-angular.module('Relate').service('util', ["$q", function($q) {
+angular.module('SneakerJS').service('util', ["$q", function($q) {
   var self = this;
 
   self.capitalizeFirstLetter = function(str) {
@@ -922,7 +920,7 @@ angular.module('Relate').service('util', ["$q", function($q) {
 }]);
 
 
-angular.module('Relate').factory('ValueRegister', function() {
+angular.module('SneakerJS').factory('ValueRegister', function() {
   //
   var ValueRegister = function() {
     this._register = {};

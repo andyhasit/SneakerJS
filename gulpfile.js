@@ -4,27 +4,37 @@ var uglify = require('gulp-uglify');
 var ngAnnotate = require('gulp-ng-annotate');
 var sourcemaps = require('gulp-sourcemaps');
 
-task = {
-  name: 'scripts',
+details = {
   start: 'src/module.js',
   sources: 'src/**/*.js',
   dest: 'dist',
-  outFile: 'relate.js'
+  outFile: 'sneakerjs',
 }
 
-gulp.task(task.name, function() { 
-  return gulp.src([task.start, task.sources])
-    .pipe(sourcemaps.init({loadMaps: true}).on('error', function(e) {console.log(e);}))
-    .pipe(ngAnnotate().on('error', function(e) {console.log(e);}))
-    .pipe(concat(task.outFile).on('error', function(e) {
-      console.log(e);
-    }))
-    //.pipe(uglify().on('error', function(e) {console.log(e);}))
-    //.pipe(sourcemaps.write('.'))
-    .pipe(gulp.dest(task.dest))
-    .pipe(gulp.dest('demos/lib'));
+gulp.task('buildNormal', function() { 
+  return gulp.src([details.start, details.sources])
+    .pipe(ngAnnotate())
+    .pipe(concat(details.outFile + '.js'))
+    .pipe(gulp.dest(details.dest))
+    .on('error', function(e) {console.log(e);})
+    ;
+});
+    
+gulp.task('buildMinified', function() { 
+  return gulp.src([details.start, details.sources])
+    .pipe(sourcemaps.init({loadMaps: true}))
+    .pipe(ngAnnotate())
+    .pipe(concat(details.outFile + '.min.js'))
+    .pipe(uglify())
+    .pipe(sourcemaps.write('.'))
+    .pipe(gulp.dest(details.dest))
+    .on('error', function(e) {console.log(e);})
+    ;
 });
 
-gulp.task('watch', [task.name], function() {
-  gulp.watch(task.sources, [task.name]);
+gulp.task('build', ['buildNormal', 'buildMinified'], function() { 
+});
+
+gulp.task('watch', ['build'], function() {
+  gulp.watch(buildTask.sources, ['build']);
 });
