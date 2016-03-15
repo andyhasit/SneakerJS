@@ -1,13 +1,13 @@
 {
   "name": "sneakerjs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Entity relationship automation for AngularJS and CouchDB/PouchDB",
   "main": "gulpfile.js",
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "test": "gulp test"
+    "test": "karma start"
   },
   "repository": {
     "type": "git",
