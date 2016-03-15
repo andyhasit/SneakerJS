@@ -1,0 +1,48 @@
+{
+  "name": "sneakerjs",
+  "version": "0.1.0",
+  "description": "Entity relationship automation for AngularJS and CouchDB/PouchDB",
+  "main": "gulpfile.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andyhasit/SneakerJS.git"
+  },
+  "keywords": [
+    "angular",
+    "relationship",
+    "couchdb",
+    "pouchdb"
+  ],
+  "author": "Andrew Buchan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/andyhasit/SneakerJS/issues"
+  },
+  "homepage": "https://github.com/andyhasit/SneakerJS#readme",
+  "dependencies": {
+    "angular": "^1.4.8"
+  },
+  "devDependencies": {
+    "angular-mocks": "^1.4.8",
+    "gulp": "^3.5.6",
+    "gulp-concat": "^2.2.0",
+    "gulp-ng-annotate": "^1.1.0",
+    "gulp-rename": "^1.2.0",
+    "gulp-sourcemaps": "^1.6.0",
+    "gulp-uglify": "^1.5.2",
+    "jasmine-core": "^2.4.1",
+    "karma": "^0.13.22",
+    "karma-chrome-launcher": "^0.2.2",
+    "karma-jasmine": "^0.3.7",
+    "karma-nicer-reporter": "^1.1.0",
+    "karma-phantomjs-launcher": "^1.0.0",
+    "phantomjs-prebuilt": "^2.1.5",
+    "pouchdb": "^5.2.1"
+  }
+}

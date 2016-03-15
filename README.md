@@ -7,24 +7,26 @@ Entity relationship automation for AngularJS and CouchDB (or PouchDB etc...)
 
 ##What does it do?
 
-####1. Lets you define your model in simple terms
+###1. Lets you define your model in simple terms
 
-    // Define some collections
+    // Define some collections (collectionName, [fields])
     model.collection('customer', ['name', 'email'])
-    model.collection('order', ['date', 'status'])
+    model.collection('order', ['value', 'status'])
+    model.define('shipment', ['date'])
     
-    // Create a basic one-to-many join
+    // Create a one-to-many join
     model.join('customer', 'order')
       
-    // Create a  many-to-many join
-    model.define('shipment', ['date'])
+    // Create a many-to-many join
     model.join('order', 'shipment', {type: 'manyToMany'})
+
+    // Joins can be customised
 
       
 
-####2. Generates intelligently named functions
+###2. Generates intelligently named functions
 
-Sneaker attaches new functions named after your collections, which makes your code faster to write, and read:
+Sneaker generates functions named after your collections (how cool is that?!)
 
     model.getCustomer(<id>)
     model.newCustomer({name: 'joe', email: 'joe@joe.com'})
@@ -35,45 +37,48 @@ Sneaker attaches new functions named after your collections, which makes your co
     model.getShipmentOrders(<shipment>)
     model.getOrderShipments(<order>)
     
-Notes:
+This makes it easier to write highly readable code.
 
-  - Most of these return promises (not shown here for simplicity) but queries return directly.
-  - The objects are all plain JavaScript objects, although you can specify prototypes for items in your collections.
+#####About these functions:
+  - Functions that change the database return promises (not shown here for simplicity) 
+  - Queries return directly (which helps with databinding)
+  - The objects are all plain JavaScript objects (but you can specify prototypes for items in your collections)
   - You can also use aliases to control the generated function names.
   
-####3. Saves to database (handling relationships)
+###3. Saves to database (handling relationships)
 
 Those functions save changes to your CouchDB/PouchDB database automatically. 
 
-Sneaker also understands relationships, so this line creates and saves a join between the new order and the customer as well as creating the order.
+Sneaker also understands relationships.
 
     model.newOrder({value: 100, customer: <customer>})
-    
- And this line can delete orders which belong to that customer (and any items that belong to the order) before it deletes the customer (if you specify that behaviour when defining the join):
 
+The above creates and saves a join between the new order and the customer as well as creating the order.
+   
+    
     model.deleteCustomer(<customer>)
     
-It handles many-to-many relationships without you having to create separate collections or figure out how to store the joins:
+This would delete orders which belong to that customer (and any items that belong to the order) before it deletes the customer (if you specify that behaviour when defining the join)
 
-    model.define(person, [name])
-    model.define(tag, [title])
-    model.join('person', 'tag', {type: 'manyToMany'})
-    
-    model.getGetPersonTags(<person>)
-    model.getTagPersons(<tag>)  // Do you prefer GetTagPeople? You can change that...
-    
-This seamlessly creates join documents in the db which you never deal with in the app.
+Many-to-many relationships seamlessly creates join documents in the db which you never deal with in the app.
 
-####4. Ultra fast in-memory joins
 
-SneakerJS maps all the relationships, so querying accross multiple joins is fast. This lets you build apps with large amounts of interconnected collections that would grind to a halt if your joins were implemented using map reduce.
+###4. Provides ultra fast in-memory joins
 
-####5. Removes design decisions for RAD
+SneakerJS maps all the relationships, so querying accross multiple joins is fast.
+
+This lets you build apps with large amounts of interconnected collections that would grind to a halt if your joins were implemented using map reduce.
+
+###5. Removes design decisions for RAD
 
 For most use cases, you can just point to the db and let SneakerJS take care of how the data and joins are stored (it strikes a balance between minimising write operations and db size).
 
 For more control, just pass a proxy DB to Sneaker which exposes **post, put, save** and **delete**. With this you can write to other backends (or stick to CouchDB and store data your way) and still get Sneaker at the front end.
 
-##Status
+##Detailed examples
 
-The source code is currently in another repo ([here](https://github.com/andyhasit/Relate)) but will be moved over here shortly.
+Check the included demo project.
+
+##Overall Status
+
+This project is in Alpha stage. A good number of tests are passing but more are needed.
