@@ -48,7 +48,7 @@ Linking:
       
 */
 
-angular.module('Relate').factory('ParentRelationshipNew', function($q) {
+angular.module('SneakerJS').factory('ParentRelationshipNew', function($q) {
 
   var Relationship = function(propertyName, parentCollection, parentPopertyName) {
     this.propertyName = propertyName;

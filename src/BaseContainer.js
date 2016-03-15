@@ -1,5 +1,5 @@
 
-angular.module('Relate').factory('BaseContainer', function($q) {
+angular.module('SneakerJS').factory('BaseContainer', function($q) {
   /*
   A collection has an internal index of the objects in the database.
   What it uses as keys and values is up to the derived class.

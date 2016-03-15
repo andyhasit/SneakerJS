@@ -1,5 +1,5 @@
 
-angular.module('Relate').factory('Collection', function(util, $q, BaseContainer) {
+angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContainer) {
 
   var Collection = function(db, singleItemName, fieldNames, options)    {var self = this;
     var options = options || {};

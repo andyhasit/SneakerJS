@@ -1,5 +1,5 @@
 
-angular.module('Relate').factory('ValueRegister', function() {
+angular.module('SneakerJS').factory('ValueRegister', function() {
   //
   var ValueRegister = function() {
     this._register = {};

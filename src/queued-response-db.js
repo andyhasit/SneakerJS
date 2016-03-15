@@ -1,5 +1,5 @@
 
-angular.module('Relate').factory('QueuedResponseDb', function($q, ValueRegister) {
+angular.module('SneakerJS').factory('QueuedResponseDb', function($q, ValueRegister) {
   /*
   post put get remove
   */

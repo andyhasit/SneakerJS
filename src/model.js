@@ -1,5 +1,5 @@
 
-angular.module('Relate').service('model', function($q, Collection, ParentChildRelationship, ManyToManyRelationship) {
+angular.module('SneakerJS').service('model', function($q, Collection, ParentChildRelationship, ManyToManyRelationship) {
 
   var self = this,
       __db,

@@ -12,7 +12,7 @@
   }
 */
     
-angular.module('Relate').factory('ManyToManyRelationship', function($q, BaseContainer, util) {
+angular.module('SneakerJS').factory('ManyToManyRelationship', function($q, BaseContainer, util) {
   
   var ManyToManyRelationship = function(db, leftCollection, rightCollection, options)    {var self = this;
     var options = options || {};

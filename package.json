@@ -19,7 +19,10 @@
     "couchdb",
     "pouchdb"
   ],
-  "author": "Andrew Buchan",
+  "author": {
+    "name": "Andrew Buchan",
+    "http": "http://www.andyhasit.com"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/andyhasit/SneakerJS/issues"

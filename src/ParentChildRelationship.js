@@ -1,5 +1,5 @@
 
-angular.module('Relate').factory('ParentChildRelationship', function($q, BaseContainer, ValueRegister, util) {
+angular.module('SneakerJS').factory('ParentChildRelationship', function($q, BaseContainer, ValueRegister, util) {
 
   var ParentChildRelationship = function(db, parentCollection, childCollection, options)    {var self = this;
     var options = options || {};

@@ -1,7 +1,7 @@
 
 describe('overview', function() {
   
-  beforeEach(module('Relate'));
+  beforeEach(module('SneakerJS'));
   beforeEach(module('PouchFake'));
   
   var task1, task2, task3, task4, project1, project2;

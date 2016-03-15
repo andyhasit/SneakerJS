@@ -1,7 +1,7 @@
 
 describe('naming one to many', function() {
   
-  beforeEach(module('Relate'));
+  beforeEach(module('SneakerJS'));
   beforeEach(module('PouchFake'));
   
   beforeEach(inject(function( _model_, _$rootScope_, FakeDb, $q) {

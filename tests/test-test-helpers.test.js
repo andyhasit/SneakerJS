@@ -2,7 +2,7 @@
 
 describe('test test-helpers', function() {
   
-  beforeEach(module('Relate'));
+  beforeEach(module('SneakerJS'));
   beforeEach(module('PouchFake'));
   
   var Project = function() {};

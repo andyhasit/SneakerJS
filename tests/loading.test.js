@@ -1,7 +1,7 @@
 
 describe('loading', function() {
   
-  beforeEach(module('Relate'));
+  beforeEach(module('SneakerJS'));
   beforeEach(module('PouchFake'));
   
   var task1, task2, task3, task4, 
