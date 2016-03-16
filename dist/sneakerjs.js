@@ -1,21 +1,228 @@
 "use strict";
 angular.module('SneakerJS', []);
 
+angular.module('SneakerJS').service('model', ["$q", "Collection", "ParentChildRelationship", "ManyToManyRelationship", function($q, Collection, ParentChildRelationship, ManyToManyRelationship) {
+
+  var self = this,
+      __db,
+      __loadQuery,
+      __containers = {},
+      __dbDocumentTypeLoaders = {},
+      __lastPromiseInQueue = $q.when(),
+      __relationshipDefinitionFunctions = {};
+
+  self.initialize = function(db, query) {
+    __db = db;
+    __loadQuery = query || function() {
+      return __db.allDocs({
+        include_docs: true,
+        attachments: false
+      });
+    }
+  };
+
+  var __dataReady;
+  self.dataReady = function (){
+    if (__dataReady === undefined) {
+      __dataReady = __initializeModel();
+    }
+    return __dataReady.promise;
+  };
+  
+  self.reload = function (){
+    __dataReady = undefined;
+    angular.forEach(__containers, function(container) {
+      container.clear();
+    });
+    return self.dataReady();
+  };
+
+  self.printInfo = function (){
+    angular.forEach(__containers, function(container) {
+      angular.forEach(container.getAccessFunctionDefinitions(), function(accessFunc) {
+        console.log('model.' + accessFunc.ModelFunctionName);
+      });
+    });
+  };
+
+  /************* MODEL DEFINITION FUNCTIONS *************/
+
+  self.collection = function(singleItemName, fieldNames, options){
+    var container = new Collection(__db, singleItemName, fieldNames, options);
+    __registerContainer(container);
+    return container;
+  };
+
+  self.join = function(firstCollection, secondCollection, options){
+    var options = options || {},
+        container,
+        relationshipType = options.type || 'parentChild';
+    angular.forEach([firstCollection, secondCollection], function(name) {
+      if (__containers[name] === undefined) {
+        throw 'Failed to create join, container not found: "' + name + '" ';
+      }
+    });
+    if (relationshipType === 'parentChild') {
+      var parentCollection = __containers[firstCollection];
+      var childCollection = __containers[secondCollection];
+      container = new ParentChildRelationship(__db, parentCollection, childCollection, options);
+    } else if (relationshipType.toLowerCase() === 'many-to-many') {
+      var leftCollection = __containers[firstCollection];
+      var rightCollection = __containers[secondCollection];
+      container = new ManyToManyRelationship(__db, leftCollection, rightCollection, options);
+    } else {
+      throw '"' + relationshipType + '" is not a valid relationship type';
+    }
+    __registerContainer(container);
+    return container;
+  };
+
+  function __registerContainer(container) {
+    var name = container.name;
+    if (__containers[name] !== undefined) {
+      throw 'Trying to create two containers with the same name: ' + name + ' on model but it already exists.';
+    }
+    __containers[name] = container;
+    __registerDocumentTypeLoader(container);
+    __createAccessFunctions(container);
+  };
+
+  /************* COLLECTION ACCESS FUNCTIONALITY ************
+
+    __createAccessFunctions() creates methods like:
+
+      model.newTask({})
+      model.getProjectTasks(project)
+
+    Query functions (getX, findX) return directly. Data changing functions (all other prefixed) return promises.
+
+    Query data may be dirty while a promise is waiting to complete, so you need to do this:
+
+    model.newTask({}).then(function(){
+      angular.copy($scope.tasks, model.getProjectTasks($scope.project));
+    });
+
+    Data changing functions are queued internally, so you can do this.
+    model.newTask({});
+    model.newTask({});
+    model.newTask({}).then(function(){
+      angular.copy($scope.tasks, model.getProjectTasks($scope.project));
+    });
+
+  */
+  self.saveItem = function(item) {
+    return __containers[item.type].saveItem(item);
+  };
+
+  self.deleteItem = function(item) {
+    return __containers[item.type].deleteItem(item);
+  };
+
+  function __createAccessFunctions(container){
+    angular.forEach(container.getAccessFunctionDefinitions(), function(accessFunc) {
+      var func, fnName = accessFunc.ModelFunctionName;
+      if (accessFunc.queuedPromise) {
+        func = __getQueuedFunction(container, accessFunc.containerFunction);
+      } else {
+        func = __getNonQueuedFunction(container, accessFunc.containerFunction);
+      }
+      if (self[fnName] !== undefined) {
+        throw 'Container ' + container.name + ' trying to create function ' + fnName + ' on model but it already exists.';
+      }
+      self[fnName] = func;
+    });
+  };
+
+  function __getNonQueuedFunction(container, containerFunction){
+    return function() {
+      return containerFunction.apply(container, arguments);
+    }
+  };
+
+  function __getQueuedFunction(container, containerFunction){
+    return function() {
+      var originalArgs = arguments;
+      var deferred = $q.defer();
+      __lastPromiseInQueue.then( function() {
+        __lastPromiseInQueue = containerFunction.apply(container, originalArgs);
+        __lastPromiseInQueue.then(function(result) {
+          deferred.resolve(result);
+        });
+      });
+      return deferred.promise;
+    }
+  };
+
+  /************* INITIAL LOADING FUNCTIONALITY *************/
+
+  function __registerDocumentTypeLoader(container) {
+    /* If container has field 'dbDocumentType' then every document whose 'type' field matches that
+    will be passed to the container's loadDocumentFromDb() function at loading.
+    */
+    var dbDocumentType = container.dbDocumentType;
+    if (dbDocumentType !== undefined) {
+      if (dbDocumentType in __dbDocumentTypeLoaders) {
+        var claimedBy = __dbDocumentTypeLoaders[dbDocumentType];
+        throw 'More than one container attempting to register database document type: "' + dbDocumentType + '".';
+      } else {
+        __dbDocumentTypeLoaders[dbDocumentType] = container;
+      }
+    }
+  };
+
+  function __initializeModel(){
+    return __loadQuery().then(function (result) {
+      angular.forEach(result.rows, function(row){
+        __addDocumentToCollection(row.doc);
+      });
+      __postInitialLoading();
+    }).catch(function (err) {
+      console.log(err);
+    });
+  };
+
+  function __addDocumentToCollection(document){
+    var dbDocumentType = document.type;
+    if (dbDocumentType) {
+      var container = __dbDocumentTypeLoaders[dbDocumentType];
+      if (container) {
+        container.loadDocumentFromDb(document, dbDocumentType);
+      } else {
+        console.log(document);
+        console.log('Could not load document \"' + document._id + '\" as type was not recognised (' + dbDocumentType + ')');
+      }
+    } else {
+      console.log('Could not load document \"' + document._id + '\" as it has no \"type\" field.');
+    }
+  };
+
+  function __postInitialLoading() {
+    angular.forEach(__containers, function(container) {
+      container.postInitialLoading();
+    });
+  }
+
+}]);
+
+
+
 angular.module('SneakerJS').factory('BaseContainer', ["$q", function($q) {
   /*
   A collection has an internal index of the objects in the database.
   What it uses as keys and values is up to the derived class.
   */
   var BaseContainer = function()    {var self = this;
-    self.__index = null;
     self.__db = null;
-    self.dbDocumentType = null;
   };
   var def = BaseContainer.prototype;
   
   def.postInitialLoading = function() {
     //override if container needs to do any post loading operations
   };
+  
+  def.clear = function() {
+    //must implement to clear items
+  }
   
   def.__postAndLoad = function(doc)  {var self = this;
     var defered = $q.defer();
@@ -79,6 +286,11 @@ angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer"
     self.__itemsAsArray.push(newItem);
     return newItem;
   };
+  
+  def.clear = function() {var self = this;
+    self.__items = {};
+    self.__itemsAsArray = [];
+  };
 
   def.getAccessFunctionDefinitions = function()    {var self = this;
     var capitalize = util.capitalizeFirstLetter,
@@ -135,8 +347,9 @@ angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer"
     doc.type = self.dbDocumentType;
     for (var alias in self.__parentRelationships) {
       var parentItem = data[alias];
+      var foreignKey = self.__parentRelationships[alias].foreignKey;
       if (data[alias]) {
-        doc[alias] = parentItem._id;
+        doc[foreignKey] = parentItem._id;
         relationshipsToLink[alias] = parentItem;
       }
     }
@@ -251,6 +464,12 @@ angular.module('SneakerJS').factory('ManyToManyRelationship', ["$q", "BaseContai
     }
   };
   
+  def.clear = function() {var self = this;
+    self.__leftRights = {};
+    self.__rightLefts = {};
+    self.__docsForReuse = [];
+  };
+  
   def.__updateOneRegisterWithDocument = function(register, key, id, doc)  {var self = this;
     var entry = register[key];
     if (entry === undefined) {
@@ -360,7 +579,7 @@ angular.module('SneakerJS').factory('ManyToManyRelationship', ["$q", "BaseContai
         finish(self.loadDocumentFromDb(doc));        
       });
     } else {
-      doc = {left: leftItem._id, right:rightItem._id};
+      doc = {left: leftItem._id, right:rightItem._id, type:self.dbDocumentType};
       self.__postAndLoad(doc).then(function (result) {
         finish(result);
       });
@@ -396,211 +615,7 @@ angular.module('SneakerJS').factory('ManyToManyRelationship', ["$q", "BaseContai
   return ManyToManyRelationship;
 }]);
 
-angular.module('SneakerJS').service('model', ["$q", "Collection", "ParentChildRelationship", "ManyToManyRelationship", function($q, Collection, ParentChildRelationship, ManyToManyRelationship) {
-
-  var self = this,
-      __db,
-      __loadQuery,
-      __containers = {},
-      __dbDocumentTypeLoaders = {},
-      __lastPromiseInQueue = $q.when(),
-      __relationshipDefinitionFunctions = {};
-
-  self.initialize = function(db, query) {
-    __db = db;
-    __loadQuery = query || function() {
-      return __db.allDocs({
-        include_docs: true,
-        attachments: false
-      });
-    }
-  };
-
-  var __dataReady;
-  self.dataReady = function (){
-    if (__dataReady === undefined) {
-      __dataReady = $q.defer();
-      __initializeModel().then( function () {
-        __dataReady.resolve();
-      });
-    }
-    return __dataReady.promise;
-  };
-
-  self.printInfo = function (){
-    angular.forEach(__containers, function(container) {
-      angular.forEach(container.getAccessFunctionDefinitions(), function(accessFunc) {
-        console.log('model.' + accessFunc.ModelFunctionName);
-      });
-    });
-  };
-
-  /************* MODEL DEFINITION FUNCTIONS *************/
-
-  self.collection = function(singleItemName, fieldNames, options){
-    var container = new Collection(__db, singleItemName, fieldNames, options);
-    __registerContainer(container);
-    return container;
-  };
-
-  self.join = function(firstCollection, secondCollection, options){
-    var options = options || {},
-        container,
-        relationshipType = options.type || 'parentChild';
-    angular.forEach([firstCollection, secondCollection], function(name) {
-      if (__containers[name] === undefined) {
-        throw 'Failed to create join, container not found: "' + name + '" ';
-      }
-    });
-    if (relationshipType === 'parentChild') {
-      var parentCollection = __containers[firstCollection];
-      var childCollection = __containers[secondCollection];
-      container = new ParentChildRelationship(__db, parentCollection, childCollection, options);
-    } else if (relationshipType === 'manyToMany') {
-      var leftCollection = __containers[firstCollection];
-      var rightCollection = __containers[secondCollection];
-      container = new ManyToManyRelationship(__db, leftCollection, rightCollection, options);
-    } else {
-      throw '"' + relationshipType + '" is not a valid relationship type';
-    }
-    __registerContainer(container);
-    return container;
-  };
-
-  function __registerContainer(container) {
-    var name = container.name;
-    if (__containers[name] !== undefined) {
-      throw 'Trying to create two containers with the same name: ' + name + ' on model but it already exists.';
-    }
-    __containers[name] = container;
-    __registerDocumentTypeLoader(container);
-    __createAccessFunctions(container);
-  };
-
-  /************* COLLECTION ACCESS FUNCTIONALITY ************
-
-    __createAccessFunctions() creates methods like:
-
-      model.newTask({})
-      model.getProjectTasks(project)
-
-    Query functions (getX, findX) return directly. Data changing functions (all other prefixed) return promises.
-
-    Query data may be dirty while a promise is waiting to complete, so you need to do this:
-
-    model.newTask({}).then(function(){
-      angular.copy($scope.tasks, model.getProjectTasks($scope.project));
-    });
-
-    Data changing functions are queued internally, so you can do this.
-    model.newTask({});
-    model.newTask({});
-    model.newTask({}).then(function(){
-      angular.copy($scope.tasks, model.getProjectTasks($scope.project));
-    });
-
-  */
-  self.saveItem = function(item) {
-    return __containers[item.type].saveItem(item);
-  };
-
-  self.deleteItem = function(item) {
-    return __containers[item.type].deleteItem(item);
-  };
-
-  function __createAccessFunctions(container){
-    angular.forEach(container.getAccessFunctionDefinitions(), function(accessFunc) {
-      var func, fnName = accessFunc.ModelFunctionName;
-      if (accessFunc.queuedPromise) {
-        func = __getQueuedFunction(container, accessFunc.containerFunction);
-      } else {
-        func = __getNonQueuedFunction(container, accessFunc.containerFunction);
-      }
-      if (self[fnName] !== undefined) {
-        throw 'Container ' + container.name + ' trying to create function ' + fnName + ' on model but it already exists.';
-      }
-      self[fnName] = func;
-    });
-  };
-
-  function __getNonQueuedFunction(container, containerFunction){
-    return function() {
-      return containerFunction.apply(container, arguments);
-    }
-  };
-
-  function __getQueuedFunction(container, containerFunction){
-    return function() {
-      var originalArgs = arguments;
-      var deferred = $q.defer();
-      __lastPromiseInQueue.then( function() {
-        __lastPromiseInQueue = containerFunction.apply(container, originalArgs);
-        __lastPromiseInQueue.then(function(result) {
-          deferred.resolve(result);
-        });
-      });
-      return deferred.promise;
-    }
-  };
-
-  /************* INITIAL LOADING FUNCTIONALITY *************/
-
-  function __registerDocumentTypeLoader(container) {
-    /* If container has field 'dbDocumentType' then every document whose 'type' field matches that
-    will be passed to the container's loadDocumentFromDb() function at loading.
-    */
-    var dbDocumentType = container.dbDocumentType;
-    if (dbDocumentType !== undefined) {
-      if (dbDocumentType in __dbDocumentTypeLoaders) {
-        var claimedBy = __dbDocumentTypeLoaders[dbDocumentType];
-        throw 'More than one container attempting to register database document type: "' + dbDocumentType + '".';
-      } else {
-        __dbDocumentTypeLoaders[dbDocumentType] = container;
-      }
-    }
-  };
-
-  function __initializeModel(){
-    var defer = $q.defer();
-    var loadQuery = __loadQuery();
-    loadQuery.then(function (result) {
-      angular.forEach(result.rows, function(row){
-        __addDocumentToCollection(row.doc);
-      });
-      __postInitialLoading();
-      defer.resolve();
-    }).catch(function (err) {
-      console.log(err);
-    });
-    return defer.promise;
-  };
-
-  function __addDocumentToCollection(document){
-    var dbDocumentType = document.type;
-    if (dbDocumentType) {
-      var container = __dbDocumentTypeLoaders[dbDocumentType];
-      if (container) {
-        container.loadDocumentFromDb(document, dbDocumentType);
-      } else {
-        console.log(document);
-        console.log('Could not load document \"' + document._id + '\" as type was not recognised (' + dbDocumentType + ')');
-      }
-    } else {
-      console.log('Could not load document \"' + document._id + '\" as it has no \"type\" field.');
-    }
-  };
-
-  function __postInitialLoading() {
-    angular.forEach(__containers, function(container) {
-      container.postInitialLoading();
-    });
-  }
-
-}]);
-
-
-
-angular.module('SneakerJS').factory('ParentChildRelationship', ["$q", "BaseContainer", "ValueRegister", "util", function($q, BaseContainer, ValueRegister, util) {
+angular.module('SneakerJS').factory('ParentChildRelationship', ["$q", "BaseContainer", "util", function($q, BaseContainer, util) {
 
   var ParentChildRelationship = function(db, parentCollection, childCollection, options)    {var self = this;
     var options = options || {};
@@ -609,7 +624,6 @@ angular.module('SneakerJS').factory('ParentChildRelationship', ["$q", "BaseConta
     self.__childCollection = childCollection;
     self.__childAlias = options.childAlias || childCollection.plural;
     self.__parentAlias = options.parentAlias || parentCollection.itemName;
-    self.__parentDeleteInProgress = new ValueRegister();
     self.__cascadeDelete = (options.cascadeDelete === undefined)? true : options.cascadeDelete;
     self.__itemParent = {};
     self.__itemChildren = {};
@@ -648,6 +662,11 @@ angular.module('SneakerJS').factory('ParentChildRelationship', ["$q", "BaseConta
         self.linkNewlyLoadedChildToParent(childItem, parentItem, parentId);
       }
     });
+  };
+  
+  def.clear = function() {var self = this;
+    self.__itemParent = {};
+    self.__itemChildren = {};
   };
   
   def.linkNewlyLoadedChildToParent = function(childItem, parentItem, parentId)    {var self = this;
@@ -719,69 +738,6 @@ angular.module('SneakerJS').factory('ParentChildRelationship', ["$q", "BaseConta
   return ParentChildRelationship;
 }]);
 
-
-angular.module('SneakerJS').factory('QueuedResponseDb', ["$q", "ValueRegister", function($q, ValueRegister) {
-  /*
-  post put get remove
-  */
-  var QueuedResponseDb = function(db) {
-    var self = this;
-    self._db = db;
-    self.queue = {};
-    self._nextId = 0;
-    self._latestResolvedId = 1;
-    
-    self.wrapPromise = function(dbCall, data) {
-      var promiseId = self.nextId();
-      var hiddenPromise = self._db[dbCall](data);
-      var returnPromise = $q.defer();
-      self.queuePromise(promiseId, returnPromise);
-      hiddenPromise.then(function(response) {
-        self.promiseGotResolved(promiseId, response);
-      });
-      return returnPromise.promise;
-    };
-    angular.forEach(['post', 'put', 'get', 'remove'], function (dbCall) {
-      self[dbCall] = function(data) {
-        return self.wrapPromise(dbCall, data);
-      }
-    });
-  };
-  
-  QueuedResponseDb.prototype.nextId = function (){
-    this._nextId ++;
-    return this._nextId;
-  }
-  
-  QueuedResponseDb.prototype.queuePromise = function(promiseId, returnPromise) {
-    this.queue[promiseId] = {
-      returnPromise: returnPromise,
-      resolved: false
-    };
-  };
-  
-  QueuedResponseDb.prototype.promiseGotResolved = function(promiseId, result) {
-    var promise = this.queue[promiseId]
-    promise['result'] = result;
-    promise.resolved = true;
-    this.releasResolvedPromises();
-  };
-  
-  QueuedResponseDb.prototype.releasResolvedPromises = function() {
-    var stop = false; // encounteredUnresolvedPromiseOrReachedEndOfQueue
-    while (!stop) {
-      entry = this.queue[this._latestResolvedId]
-      if (entry && entry.resolved) {
-        entry.returnPromise.resolve(entry.result);
-        this._latestResolvedId ++;
-      } else {
-        stop = true;
-      }
-    }
-  }
-  
-  return QueuedResponseDb;
-}]);
 
 
 
@@ -864,19 +820,3 @@ angular.module('SneakerJS').service('util', ["$q", function($q) {
   }
 
 }]);
-
-
-angular.module('SneakerJS').factory('ValueRegister', function() {
-  //
-  var ValueRegister = function() {
-    this._register = {};
-  };
-  ValueRegister.prototype.set = function(key, value) {
-    this._register[key] = value;
-  };
-  ValueRegister.prototype.get = function(key) {
-    return this._register[key];
-  };
-  
-  return ValueRegister;
-});
