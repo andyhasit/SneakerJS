@@ -15,8 +15,8 @@ angular.module('SneakerJS').factory('ParentChildRelationship', function($q, Base
     self.name = 'relationship_' + childCollection.itemName + '_as_' + self.__childAlias + '_' +
           parentCollection.itemName + '_as_' + self.__parentAlias;
     self.foreignKey = 'fk__' + self.__parentAlias;
-    parentCollection.registerRelationship(self);
-    childCollection.registerRelationship(self, self.foreignKey);
+    parentCollection.registerChildRelationship(self);
+    childCollection.registerParentRelationship(self, self.foreignKey, self.__parentAlias);
   };
   util.inheritPrototype(ParentChildRelationship, BaseContainer);
   var def = ParentChildRelationship.prototype;
@@ -43,11 +43,21 @@ angular.module('SneakerJS').factory('ParentChildRelationship', function($q, Base
     angular.forEach(self.__childCollection.__items, function(childItem) {
       var parentId = childItem[key];
       if (parentId) {
-        var parent = self.__parentCollection.getItem(parentId);
-        self.__itemParent[childItem._id] = parent;
-        self.__itemChildren[parentId].push(childItem);
+        var parentItem = self.__parentCollection.getItem(parentId);
+        self.linkNewlyLoadedChildToParent(childItem, parentItem, parentId);
       }
     });
+  };
+  
+  def.linkNewlyLoadedChildToParent = function(childItem, parentItem, parentId)    {var self = this;
+    var parentId = parentId || parentItem._id;
+    self.__itemParent[childItem._id] = parentItem;
+    var parentChildren = self.__itemChildren[parentId];
+    if (parentChildren === undefined) {
+      self.__itemChildren[parentId] = [childItem];
+    } else {
+      parentChildren.push(childItem);
+    }
   };
 
   def.getParent = function (childItem)    {var self = this;

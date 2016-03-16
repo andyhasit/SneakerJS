@@ -32,8 +32,8 @@ angular.module('SneakerJS').factory('ManyToManyRelationship', function($q, BaseC
     self.__leftRights = {};
     self.__rightLefts = {};
     self.__docsForReuse = [];
-    rightCollection.registerRelationship(self);
-    leftCollection.registerRelationship(self);
+    rightCollection.registerManyToManyRelationship(self);
+    leftCollection.registerManyToManyRelationship(self);
   };
   util.inheritPrototype(ManyToManyRelationship, BaseContainer);
   var def = ManyToManyRelationship.prototype;

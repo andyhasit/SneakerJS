@@ -19,8 +19,7 @@ describe('loading', function() {
     model = _model_;
     model.initialize(db);
         
-        
-    projectCollection = model.collection('project', ['name'], {constructorFunction: Project});
+    projectCollection = model.collection('project', ['name'], {proto: Project});
     taskCollection = model.collection('task', ['name']);
     tagCollection = model.collection('tag', ['name']);
     taskProjectJoin = model.join('project', 'task');

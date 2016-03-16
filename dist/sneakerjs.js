@@ -44,8 +44,10 @@ angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer"
     self.plural = options.plural || singleItemName + 's'
     self.dbDocumentType = options.dbDocumentType || singleItemName;
     self.__db = db;
-    self.__constructorFunction = options.constructorFunction || function(){};
+    self.__proto = options.proto || function(){};
     self.__items = {};
+    self.__itemsAsArray = [];
+    self.__parentRelationships = {};
     self.__relationships = [];
     self.__fieldNames = fieldNames.slice();
     self.__fullFieldNames = fieldNames.slice();
@@ -55,19 +57,27 @@ angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer"
   util.inheritPrototype(Collection, BaseContainer);
   var def = Collection.prototype;
 
-  def.registerRelationship = function(relationship, fieldName)    {var self = this;
+  def.registerChildRelationship = function(relationship)    {var self = this;
     self.__relationships.push(relationship);
-    if (fieldName) {
-      self.__fullFieldNames.push(fieldName);
-    }
+  };
+  
+  def.registerParentRelationship = function(relationship, foreignKey, alias)    {var self = this;
+    self.__parentRelationships[alias] = relationship;
+    self.__relationships.push(relationship);
+    self.__fullFieldNames.push(foreignKey);
+  };
+  
+  def.registerManyToManyRelationship = function(relationship)    {var self = this;
+    self.__relationships.push(relationship);
   };
 
   def.loadDocumentFromDb = function(doc)    {var self = this;
-    var item = new self.__constructorFunction();
-    util.copyFields(doc, item, self.__fullFieldNames);
-    item.type = self.itemName;
-    self.__items[doc._id] = item;
-    return item;
+    var newItem = new self.__proto();
+    util.copyFields(doc, newItem, self.__fullFieldNames);
+    newItem.type = self.itemName;
+    self.__items[doc._id] = newItem;
+    self.__itemsAsArray.push(newItem);
+    return newItem;
   };
 
   def.getAccessFunctionDefinitions = function()    {var self = this;
@@ -88,9 +98,7 @@ angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer"
   };
 
   def.allItems = function()    {var self = this;
-    return Object.keys(self.__items).map(function(i){
-      return self.__items[i];
-    });
+    return self.__itemsAsArray;
   };
 
   def.findItems = function(query)    {var self = this;
@@ -120,15 +128,22 @@ angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer"
   };
 
   def.newItem = function(data)    {var self = this;
-    if (data === undefined) {
-      throw 'newItem expects an object as its first argument.'
-    }
     var deferred = $q.defer();
     var doc = {};
+    var relationshipsToLink = {};
     util.copyFields(data, doc, self.__fieldNames);
     doc.type = self.dbDocumentType;
+    for (var alias in self.__parentRelationships) {
+      var parentItem = data[alias];
+      if (data[alias]) {
+        doc[alias] = parentItem._id;
+        relationshipsToLink[alias] = parentItem;
+      }
+    }
     self.__postAndLoad(doc).then(function (newItem) {
-      //TODO: link relationships...
+      for (var alias in relationshipsToLink) { 
+        self.__parentRelationships.rawLinkChildToParent(newItem, parentItem);
+      }
       deferred.resolve(newItem);
     });
     return deferred.promise;
@@ -153,6 +168,7 @@ angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer"
     return $q.all(childDeletions).then(function() {
       self.__db.remove(item).then(function (result) {
         delete self.__items[item._id];
+        util.removeFromArray(self.__itemsAsArray, item);
       }, util.promiseFailed);
     }, util.promiseFailed);
   };
@@ -194,8 +210,8 @@ angular.module('SneakerJS').factory('ManyToManyRelationship', ["$q", "BaseContai
     self.__leftRights = {};
     self.__rightLefts = {};
     self.__docsForReuse = [];
-    rightCollection.registerRelationship(self);
-    leftCollection.registerRelationship(self);
+    rightCollection.registerManyToManyRelationship(self);
+    leftCollection.registerManyToManyRelationship(self);
   };
   util.inheritPrototype(ManyToManyRelationship, BaseContainer);
   var def = ManyToManyRelationship.prototype;
@@ -600,8 +616,8 @@ angular.module('SneakerJS').factory('ParentChildRelationship', ["$q", "BaseConta
     self.name = 'relationship_' + childCollection.itemName + '_as_' + self.__childAlias + '_' +
           parentCollection.itemName + '_as_' + self.__parentAlias;
     self.foreignKey = 'fk__' + self.__parentAlias;
-    parentCollection.registerRelationship(self);
-    childCollection.registerRelationship(self, self.foreignKey);
+    parentCollection.registerChildRelationship(self);
+    childCollection.registerParentRelationship(self, self.foreignKey, self.__parentAlias);
   };
   util.inheritPrototype(ParentChildRelationship, BaseContainer);
   var def = ParentChildRelationship.prototype;
@@ -628,11 +644,16 @@ angular.module('SneakerJS').factory('ParentChildRelationship', ["$q", "BaseConta
     angular.forEach(self.__childCollection.__items, function(childItem) {
       var parentId = childItem[key];
       if (parentId) {
-        var parent = self.__parentCollection.getItem(parentId);
-        self.__itemParent[childItem._id] = parent;
-        self.__itemChildren[parentId].push(childItem);
+        var parentItem = self.__parentCollection.getItem(parentId);
+        self.rawLinkChildToParent(childItem, parentItem) ;
       }
     });
+  };
+  
+  /*Call upon loading or creation of new child only*/
+  def.rawLinkChildToParent = function(childItem, parentItem)    {var self = this;
+    self.__itemParent[childItem._id] = parentItem;
+    self.__itemChildren[parentItem._id].push(childItem);
   };
 
   def.getParent = function (childItem)    {var self = this;
@@ -755,86 +776,6 @@ angular.module('SneakerJS').factory('QueuedResponseDb', ["$q", "ValueRegister", 
   }
   
   return QueuedResponseDb;
-}]);
-/*
-New way:
-
-Specify one relationship per collection.
-It knows of the other collection, and how the relationship behaves.
-
-The model is responisble for passing complementary relationships to the collections.
-
-Linking:
-   collection ends up with methods:
-   setParent
-   addChild
-   removeChild
-   addTag
-   removeTag
-   
-  model.join({type: 'parentChild'... })
-    r1 = parentChildRelationship(parent, child)
-    r2 = childParentRelationship(parent, child)
-    parentCollection.registerRelationship(r1)
-    parentCollection.registerRelationship(r2)
-    childCollection.registerRelationship(r1)
-    childCollection.registerRelationship(r2)
-  }
-  What does a relationship do:
-    create accessor functions (get, set)
-    respond to deletions
-    respond to new
-    
-    
-  Deletions:
-    if has child items: 
-      delete:
-        chilren
-        parent of child links 
-        children of parent
-    if has parent items:
-      delete:
-        parent of child links 
-        children of parent
-    if many to many:
-      delete join only
-      
-    ...but parent child deletions could benefit from not having all the items stripped first. Do I care?
-    I could collate operations on the db side (i.e. collect changes to single objects, and flush them after a period)
-    
-    
-      
-*/
-
-angular.module('SneakerJS').factory('ParentRelationshipNew', ["$q", function($q) {
-
-  var Relationship = function(propertyName, parentCollection, parentPopertyName) {
-    this.propertyName = propertyName;
-    this._parentCollection = parentCollection;
-    this._parentPopertyName = parentPopertyName;
-  };
-  
-  Relationship.prototype._convertFromDoc = function(doc) {
-    var value = doc[this.propertyName];
-    if (value) {
-      this._parentCollection.getItem(value);
-    }
-  };
-  
-  Relationship.prototype._convertToDoc = function(value) {
-    return value.id;
-  };
-  
-  Relationship.prototype._onItemRemove = function(item) {
-    var value = doc[this.propertyName];
-    if (value) {
-      var parentItem = this._parentCollection.getItem(value);
-      if (parentItem) {
-        parentItem._links[this._parentPopertyName]
-      }
-    }
-  };
-  
 }]);
 
 

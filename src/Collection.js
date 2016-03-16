@@ -8,9 +8,10 @@ angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContain
     self.plural = options.plural || singleItemName + 's'
     self.dbDocumentType = options.dbDocumentType || singleItemName;
     self.__db = db;
-    self.__constructorFunction = options.constructorFunction || function(){};
+    self.__proto = options.proto || function(){};
     self.__items = {};
     self.__itemsAsArray = [];
+    self.__parentRelationships = {};
     self.__relationships = [];
     self.__fieldNames = fieldNames.slice();
     self.__fullFieldNames = fieldNames.slice();
@@ -20,15 +21,22 @@ angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContain
   util.inheritPrototype(Collection, BaseContainer);
   var def = Collection.prototype;
 
-  def.registerRelationship = function(relationship, fieldName)    {var self = this;
+  def.registerChildRelationship = function(relationship)    {var self = this;
     self.__relationships.push(relationship);
-    if (fieldName) {
-      self.__fullFieldNames.push(fieldName);
-    }
+  };
+  
+  def.registerParentRelationship = function(relationship, foreignKey, alias)    {var self = this;
+    self.__parentRelationships[alias] = relationship;
+    self.__relationships.push(relationship);
+    self.__fullFieldNames.push(foreignKey);
+  };
+  
+  def.registerManyToManyRelationship = function(relationship)    {var self = this;
+    self.__relationships.push(relationship);
   };
 
   def.loadDocumentFromDb = function(doc)    {var self = this;
-    var newItem = new self.__constructorFunction();
+    var newItem = new self.__proto();
     util.copyFields(doc, newItem, self.__fullFieldNames);
     newItem.type = self.itemName;
     self.__items[doc._id] = newItem;
@@ -84,15 +92,22 @@ angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContain
   };
 
   def.newItem = function(data)    {var self = this;
-    if (data === undefined) {
-      throw 'newItem expects an object as its first argument.'
-    }
     var deferred = $q.defer();
     var doc = {};
+    var relationshipsToLink = {};
     util.copyFields(data, doc, self.__fieldNames);
     doc.type = self.dbDocumentType;
+    for (var alias in self.__parentRelationships) {
+      var parentItem = data[alias];
+      if (data[alias]) {
+        doc[alias] = parentItem._id;
+        relationshipsToLink[alias] = parentItem;
+      }
+    }
     self.__postAndLoad(doc).then(function (newItem) {
-      //TODO: link relationships...
+      for (var alias in relationshipsToLink) { 
+        self.__parentRelationships[alias].linkNewlyLoadedChildToParent(newItem, parentItem);
+      }
       deferred.resolve(newItem);
     });
     return deferred.promise;

@@ -9,8 +9,9 @@ describe('overview', function() {
   beforeEach(inject(function( _model_, _$rootScope_, FakeDb, $q) {
     $rootScope = _$rootScope_;
     var db = new FakeDb();
+    model = _model_;
     
-    db.setData('task', ['name', '__project'], [
+    db.setData('task', ['name', 'fk__project'], [
       ['task1', null],
       ['task2', 'project_1'],
     ]);
@@ -19,7 +20,6 @@ describe('overview', function() {
       ['project2'],
     ]);
     
-    model = _model_;
     model.initialize(db);
     model.collection('project', ['name']);
     model.collection('task', ['name']);
@@ -28,8 +28,7 @@ describe('overview', function() {
       project1: [task2]
       project2: []
     */
-    model.dataReady();
-    flush();
+    ready();
     
     task1 = model.getTask('task_1');
     task2 = model.getTask('task_2');

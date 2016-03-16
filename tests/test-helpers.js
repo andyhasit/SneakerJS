@@ -1,7 +1,6 @@
-function capitalizeFirstLetter(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
 
+var model, $rootScope;
+var c = console;
 /*
   Synchronously creates an item, to make writing tests cleaner.
   Requires model and $rootScope to be global, which isn't a problem in a test environment.
@@ -19,9 +18,18 @@ function flush() {
   $rootScope.$apply();
 }
 
+function ready() {
+  model.dataReady();
+  flush();
+}
+
 pretty = function(obj) {
   console.log(JSON.stringify(obj, null, 2));
 };
+
+function capitalizeFirstLetter(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
 angular.module('PouchFake', []).factory('FakeDb', function($q) {
 

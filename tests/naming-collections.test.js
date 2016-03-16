@@ -11,11 +11,6 @@ describe('naming collections', function() {
     model.initialize(db);
   }));
   
-  function ready() {
-    model.dataReady();
-    flush();
-  }
-  
   it('creates accessor functions', function() {
     model.collection('project', ['name']);
     model.collection('task', ['name']);
