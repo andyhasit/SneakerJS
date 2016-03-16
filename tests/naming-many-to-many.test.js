@@ -19,19 +19,20 @@ describe('naming many to many', function() {
   it('basic many to many', function() {
     model.collection('project', ['name']);
     model.collection('tag', ['name']);
-    model.join('project', 'tag', {type: 'manyToMany'});
+    model.join('project', 'tag', {type: 'many-to-many'});
     ready();
     
     expect(typeof model.getProjectTags).toEqual('function');
     expect(typeof model.addProjectTag).toEqual('function');
     expect(typeof model.removeProjectTag).toEqual('function');
     expect(typeof model.getTagProjects).toEqual('function');
+    expect(typeof model.isProjectLinkedToTag).toEqual('function');
   });
   
   it('right side has a plural name', function() {
     model.collection('project', ['name']);
     model.collection('person', ['name'], {plural: 'people'});
-    model.join('project', 'person', {type: 'manyToMany'});
+    model.join('project', 'person', {type: 'many-to-many'});
     ready();
     
     expect(typeof model.getPersonProjects).toEqual('function');
@@ -43,7 +44,7 @@ describe('naming many to many', function() {
   it('both sides have a plural name', function() {
     model.collection('mouse', ['name'], {plural: 'mice'});
     model.collection('person', ['name'], {plural: 'people'});
-    model.join('mouse', 'person', {type: 'manyToMany'});
+    model.join('mouse', 'person', {type: 'many-to-many'});
     ready();
     
     expect(typeof model.getPersonMice).toEqual('function');
@@ -55,7 +56,7 @@ describe('naming many to many', function() {
   it('with qualifier', function() {
     model.collection('project', ['name']);
     model.collection('person', ['name']);
-    model.join('project', 'person', {type: 'manyToMany', qualifier: 'admin'});
+    model.join('project', 'person', {type: 'many-to-many', qualifier: 'admin'});
     ready();
     
     expect(typeof model.getPersonProjectsAsAdmin).toEqual('function');
@@ -67,7 +68,7 @@ describe('naming many to many', function() {
   it('with qualifier and plural', function() {
     model.collection('project', ['name']);
     model.collection('person', ['name'], {plural: 'people'});
-    model.join('project', 'person', {type: 'manyToMany', qualifier: 'admin'});
+    model.join('project', 'person', {type: 'many-to-many', qualifier: 'admin'});
     ready();
     
     expect(typeof model.getPersonProjectsAsAdmin).toEqual('function');

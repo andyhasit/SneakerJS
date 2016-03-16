@@ -23,7 +23,7 @@ describe('loading', function() {
     taskCollection = model.collection('task', ['name']);
     tagCollection = model.collection('tag', ['name']);
     taskProjectJoin = model.join('project', 'task');
-    tagProjectJoin = model.join('project', 'tag', {type: 'manyToMany'});
+    tagProjectJoin = model.join('project', 'tag', {type: 'many-to-many'});
     
     db.setData(taskCollection.dbDocumentType, ['name', taskProjectJoin.foreignKey], [
       ['task1', null],

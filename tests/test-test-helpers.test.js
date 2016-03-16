@@ -19,7 +19,7 @@ describe('test test-helpers', function() {
     taskCollection = model.collection('task', ['name']);
     tagCollection = model.collection('tag', ['name']);
     taskProjectJoin = model.join('project', 'task');
-    tagProjectJoin = model.join('project', 'tag', {type: 'manyToMany'});
+    tagProjectJoin = model.join('project', 'tag', {type: 'many-to-many'});
     
     model.dataReady();
     flush();    

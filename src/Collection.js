@@ -43,6 +43,11 @@ angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContain
     self.__itemsAsArray.push(newItem);
     return newItem;
   };
+  
+  def.clear = function() {var self = this;
+    self.__items = {};
+    self.__itemsAsArray = [];
+  };
 
   def.getAccessFunctionDefinitions = function()    {var self = this;
     var capitalize = util.capitalizeFirstLetter,
@@ -99,8 +104,9 @@ angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContain
     doc.type = self.dbDocumentType;
     for (var alias in self.__parentRelationships) {
       var parentItem = data[alias];
+      var foreignKey = self.__parentRelationships[alias].foreignKey;
       if (data[alias]) {
-        doc[alias] = parentItem._id;
+        doc[foreignKey] = parentItem._id;
         relationshipsToLink[alias] = parentItem;
       }
     }

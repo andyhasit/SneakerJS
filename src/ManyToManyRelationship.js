@@ -73,6 +73,12 @@ angular.module('SneakerJS').factory('ManyToManyRelationship', function($q, BaseC
     }
   };
   
+  def.clear = function() {var self = this;
+    self.__leftRights = {};
+    self.__rightLefts = {};
+    self.__docsForReuse = [];
+  };
+  
   def.__updateOneRegisterWithDocument = function(register, key, id, doc)  {var self = this;
     var entry = register[key];
     if (entry === undefined) {
@@ -182,7 +188,7 @@ angular.module('SneakerJS').factory('ManyToManyRelationship', function($q, BaseC
         finish(self.loadDocumentFromDb(doc));        
       });
     } else {
-      doc = {left: leftItem._id, right:rightItem._id};
+      doc = {left: leftItem._id, right:rightItem._id, type:self.dbDocumentType};
       self.__postAndLoad(doc).then(function (result) {
         finish(result);
       });

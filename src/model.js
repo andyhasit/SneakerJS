@@ -24,12 +24,17 @@ angular.module('SneakerJS').service('model', function($q, Collection, ParentChil
   var __dataReady;
   self.dataReady = function (){
     if (__dataReady === undefined) {
-      __dataReady = $q.defer();
-      __initializeModel().then( function () {
-        __dataReady.resolve();
-      });
+      __dataReady = __initializeModel();
     }
     return __dataReady.promise;
+  };
+  
+  self.reload = function (){
+    __dataReady = undefined;
+    angular.forEach(__containers, function(container) {
+      container.clear();
+    });
+    return self.dataReady();
   };
 
   self.printInfo = function (){
@@ -61,7 +66,7 @@ angular.module('SneakerJS').service('model', function($q, Collection, ParentChil
       var parentCollection = __containers[firstCollection];
       var childCollection = __containers[secondCollection];
       container = new ParentChildRelationship(__db, parentCollection, childCollection, options);
-    } else if (relationshipType === 'manyToMany') {
+    } else if (relationshipType.toLowerCase() === 'many-to-many') {
       var leftCollection = __containers[firstCollection];
       var rightCollection = __containers[secondCollection];
       container = new ManyToManyRelationship(__db, leftCollection, rightCollection, options);
@@ -166,18 +171,14 @@ angular.module('SneakerJS').service('model', function($q, Collection, ParentChil
   };
 
   function __initializeModel(){
-    var defer = $q.defer();
-    var loadQuery = __loadQuery();
-    loadQuery.then(function (result) {
+    return __loadQuery().then(function (result) {
       angular.forEach(result.rows, function(row){
         __addDocumentToCollection(row.doc);
       });
       __postInitialLoading();
-      defer.resolve();
     }).catch(function (err) {
       console.log(err);
     });
-    return defer.promise;
   };
 
   function __addDocumentToCollection(document){

@@ -5,15 +5,17 @@ angular.module('SneakerJS').factory('BaseContainer', function($q) {
   What it uses as keys and values is up to the derived class.
   */
   var BaseContainer = function()    {var self = this;
-    self.__index = null;
     self.__db = null;
-    self.dbDocumentType = null;
   };
   var def = BaseContainer.prototype;
   
   def.postInitialLoading = function() {
     //override if container needs to do any post loading operations
   };
+  
+  def.clear = function() {
+    //must implement to clear items
+  }
   
   def.__postAndLoad = function(doc)  {var self = this;
     var defered = $q.defer();

@@ -13,7 +13,7 @@ describe('many to many db reuse', function() {
     taskCollection = model.collection('task', ['name']);
     tagCollection = model.collection('tag', ['name']);
     taskProjectJoin = model.join('project', 'task');
-    tagProjectJoin = model.join('project', 'tag', {type: 'manyToMany'});
+    tagProjectJoin = model.join('project', 'tag', {type: 'many-to-many'});
     db.setData(tagProjectJoin.dbDocumentType, ['left', 'right'], [
       ['project_1', '89898989'],
       ['project_1', '89898989'],

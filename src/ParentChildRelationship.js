@@ -48,6 +48,11 @@ angular.module('SneakerJS').factory('ParentChildRelationship', function($q, Base
     });
   };
   
+  def.clear = function() {var self = this;
+    self.__itemParent = {};
+    self.__itemChildren = {};
+  };
+  
   def.linkNewlyLoadedChildToParent = function(childItem, parentItem, parentId)    {var self = this;
     var parentId = parentId || parentItem._id;
     self.__itemParent[childItem._id] = parentItem;
