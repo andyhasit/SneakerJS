@@ -10,6 +10,7 @@ angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContain
     self.__db = db;
     self.__constructorFunction = options.constructorFunction || function(){};
     self.__items = {};
+    self.__itemsAsArray = [];
     self.__relationships = [];
     self.__fieldNames = fieldNames.slice();
     self.__fullFieldNames = fieldNames.slice();
@@ -27,11 +28,12 @@ angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContain
   };
 
   def.loadDocumentFromDb = function(doc)    {var self = this;
-    var item = new self.__constructorFunction();
-    util.copyFields(doc, item, self.__fullFieldNames);
-    item.type = self.itemName;
-    self.__items[doc._id] = item;
-    return item;
+    var newItem = new self.__constructorFunction();
+    util.copyFields(doc, newItem, self.__fullFieldNames);
+    newItem.type = self.itemName;
+    self.__items[doc._id] = newItem;
+    self.__itemsAsArray.push(newItem);
+    return newItem;
   };
 
   def.getAccessFunctionDefinitions = function()    {var self = this;
@@ -52,9 +54,7 @@ angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContain
   };
 
   def.allItems = function()    {var self = this;
-    return Object.keys(self.__items).map(function(i){
-      return self.__items[i];
-    });
+    return self.__itemsAsArray;
   };
 
   def.findItems = function(query)    {var self = this;
@@ -117,6 +117,7 @@ angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContain
     return $q.all(childDeletions).then(function() {
       self.__db.remove(item).then(function (result) {
         delete self.__items[item._id];
+        util.removeFromArray(self.__itemsAsArray, item);
       }, util.promiseFailed);
     }, util.promiseFailed);
   };
