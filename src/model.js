@@ -1,3 +1,5 @@
+"use strict";
+angular.module('SneakerJS', []);
 
 angular.module('SneakerJS').service('model', function($q, Collection, ParentChildRelationship, ManyToManyRelationship) {
 

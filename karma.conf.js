@@ -10,7 +10,7 @@ module.exports = function(config) {
       'node_modules/angular-mocks/angular-mocks.js',
       'node_modules/pouchdb/dist/pouchdb.js',
       //Your app scripts {pattern: 'users/**/*.html', included: false, served: true},
-      'src/module.js',
+      'src/model.js',
       'src/**/*.js',
       //And your specs
       'tests/test-helpers.js',

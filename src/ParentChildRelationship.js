@@ -1,5 +1,5 @@
 
-angular.module('SneakerJS').factory('ParentChildRelationship', function($q, BaseContainer, ValueRegister, util) {
+angular.module('SneakerJS').factory('ParentChildRelationship', function($q, BaseContainer, util) {
 
   var ParentChildRelationship = function(db, parentCollection, childCollection, options)    {var self = this;
     var options = options || {};
@@ -8,7 +8,6 @@ angular.module('SneakerJS').factory('ParentChildRelationship', function($q, Base
     self.__childCollection = childCollection;
     self.__childAlias = options.childAlias || childCollection.plural;
     self.__parentAlias = options.parentAlias || parentCollection.itemName;
-    self.__parentDeleteInProgress = new ValueRegister();
     self.__cascadeDelete = (options.cascadeDelete === undefined)? true : options.cascadeDelete;
     self.__itemParent = {};
     self.__itemChildren = {};
