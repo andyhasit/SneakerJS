@@ -142,7 +142,7 @@ angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer"
     }
     self.__postAndLoad(doc).then(function (newItem) {
       for (var alias in relationshipsToLink) { 
-        self.__parentRelationships.rawLinkChildToParent(newItem, parentItem);
+        self.__parentRelationships[alias].linkNewlyLoadedChildToParent(newItem, parentItem);
       }
       deferred.resolve(newItem);
     });
@@ -645,15 +645,20 @@ angular.module('SneakerJS').factory('ParentChildRelationship', ["$q", "BaseConta
       var parentId = childItem[key];
       if (parentId) {
         var parentItem = self.__parentCollection.getItem(parentId);
-        self.rawLinkChildToParent(childItem, parentItem) ;
+        self.linkNewlyLoadedChildToParent(childItem, parentItem, parentId);
       }
     });
   };
   
-  /*Call upon loading or creation of new child only*/
-  def.rawLinkChildToParent = function(childItem, parentItem)    {var self = this;
+  def.linkNewlyLoadedChildToParent = function(childItem, parentItem, parentId)    {var self = this;
+    var parentId = parentId || parentItem._id;
     self.__itemParent[childItem._id] = parentItem;
-    self.__itemChildren[parentItem._id].push(childItem);
+    var parentChildren = self.__itemChildren[parentId];
+    if (parentChildren === undefined) {
+      self.__itemChildren[parentId] = [childItem];
+    } else {
+      parentChildren.push(childItem);
+    }
   };
 
   def.getParent = function (childItem)    {var self = this;

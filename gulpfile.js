@@ -36,7 +36,8 @@ gulp.task('buildMinified', function() {
 gulp.task('build', ['buildNormal', 'buildMinified'], function() { 
 });
 
-gulp.task('publish', ['build'], shell.task([
+gulp.task('patch', ['build'], shell.task([
+  'npm version patch',
   'npm publish'
 ]));
 
