@@ -1,0 +1,29 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'C:\\nodejs\\\\node.exe',
+1 verbose cli   'C:\\nodejs\\node_modules\\npm\\bin\\npm-cli.js',
+1 verbose cli   'version',
+1 verbose cli   'patch' ]
+2 info using npm@2.14.9
+3 info using node@v0.12.9
+4 info git [ 'status', '--porcelain' ]
+5 verbose stack Error: Git working directory not clean.
+5 verbose stack M gulpfile.js
+5 verbose stack M package.json
+5 verbose stack     at C:\nodejs\node_modules\npm\lib\version.js:171:21
+5 verbose stack     at ChildProcess.exithandler (child_process.js:742:7)
+5 verbose stack     at ChildProcess.emit (events.js:110:17)
+5 verbose stack     at maybeClose (child_process.js:1016:16)
+5 verbose stack     at Socket.<anonymous> (child_process.js:1184:11)
+5 verbose stack     at Socket.emit (events.js:107:17)
+5 verbose stack     at Pipe.close (net.js:484:11)
+6 verbose cwd C:\mine\projects\SneakerJS
+7 error Windows_NT 6.1.7601
+8 error argv "C:\\nodejs\\\\node.exe" "C:\\nodejs\\node_modules\\npm\\bin\\npm-cli.js" "version" "patch"
+9 error node v0.12.9
+10 error npm  v2.14.9
+11 error Git working directory not clean.
+11 error M gulpfile.js
+11 error M package.json
+12 error If you need help, you may report this error at:
+12 error     <https://github.com/npm/npm/issues>
+13 verbose exit [ 1, true ]

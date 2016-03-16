@@ -1,6 +1,7 @@
 var gulp = require('gulp');
 var concat = require('gulp-concat');
 var uglify = require('gulp-uglify');
+var shell = require('gulp-shell');
 var ngAnnotate = require('gulp-ng-annotate');
 var sourcemaps = require('gulp-sourcemaps');
 
@@ -34,6 +35,10 @@ gulp.task('buildMinified', function() {
 
 gulp.task('build', ['buildNormal', 'buildMinified'], function() { 
 });
+
+gulp.task('publish', ['build'], shell.task([
+  'npm publish'
+]));
 
 gulp.task('watch', ['build'], function() {
   gulp.watch(buildTask.sources, ['build']);
