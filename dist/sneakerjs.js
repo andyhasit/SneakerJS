@@ -772,7 +772,7 @@ angular.module('SneakerJS').factory('Singleton', ["util", "BaseContainer", funct
   };
   
   def.getData = function() {var self = this;
-    return self.__doc.data;
+    return (self.__doc)? self.__doc.data : {};
   };
   
   def.setData = function(data) {var self = this;
