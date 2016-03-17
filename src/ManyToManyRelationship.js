@@ -107,16 +107,13 @@ angular.module('SneakerJS').factory('ManyToManyRelationship', function($q, BaseC
     if (self.isLinked(leftItem, rightItem)) {
       return $q.when();
     } else {
-      var deferred = $q.defer();
-      self.__writeLinkToDatabase(leftItem, rightItem).then(function(){
+      return self.__writeLinkToDatabase(leftItem, rightItem).then(function(){
         //will have gone through loadDocumentFromDb succesfully.
         var leftEntry = self.__getInitialisedEntry(self.__leftRights, leftItem._id),
             rightEntry = self.__getInitialisedEntry(self.__rightLefts, rightItem._id);
         util.addUnique(leftEntry.items, rightItem);
         util.addUnique(rightEntry.items, leftItem);
-        deferred.resolve()
       });
-      return deferred.promise; 
     };
   };
   
@@ -170,6 +167,7 @@ angular.module('SneakerJS').factory('ManyToManyRelationship', function($q, BaseC
   /*
   Should only be called if sure that items are not linked. Will reuse a document if one is available.
   */
+  //TODO: tidy this mess not to have var deferred = $q.defer()
   def.__writeLinkToDatabase = function(leftItem, rightItem)  {var self = this;
     var deferred = $q.defer(),
         doc = self.__docsForReuse.pop();

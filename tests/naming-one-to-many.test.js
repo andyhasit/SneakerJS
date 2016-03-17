@@ -88,7 +88,7 @@ describe('naming one to many', function() {
       model.join('calendarDay', 'task');
     }        
     expect(joinWithClash).toThrow(
-      'Trying to create two containers with the same name: relationship_task_as_tasks_calendarDay_as_calendarDay on model but it already exists.'
+      'Trying to create containers with name: relationship_task_as_tasks_calendarDay_as_calendarDay on model but it already exists.'
     );
   });
    

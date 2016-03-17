@@ -1,7 +1,6 @@
-"use strict";
 angular.module('SneakerJS', []);
 
-angular.module('SneakerJS').service('model', ["$q", "Collection", "ParentChildRelationship", "ManyToManyRelationship", function($q, Collection, ParentChildRelationship, ManyToManyRelationship) {
+angular.module('SneakerJS').service('model', ["$q", "Collection", "Singleton", "ParentChildRelationship", "ManyToManyRelationship", function($q, Collection, Singleton, ParentChildRelationship, ManyToManyRelationship) {
 
   var self = this,
       __db,
@@ -26,7 +25,7 @@ angular.module('SneakerJS').service('model', ["$q", "Collection", "ParentChildRe
     if (__dataReady === undefined) {
       __dataReady = __initializeModel();
     }
-    return __dataReady.promise;
+    return __dataReady;
   };
   
   self.reload = function (){
@@ -49,6 +48,12 @@ angular.module('SneakerJS').service('model', ["$q", "Collection", "ParentChildRe
 
   self.collection = function(singleItemName, fieldNames, options){
     var container = new Collection(__db, singleItemName, fieldNames, options);
+    __registerContainer(container);
+    return container;
+  };
+  
+  self.singleton = function(name, data){
+    var container = new Singleton(__db, name, data);
     __registerContainer(container);
     return container;
   };
@@ -80,7 +85,7 @@ angular.module('SneakerJS').service('model', ["$q", "Collection", "ParentChildRe
   function __registerContainer(container) {
     var name = container.name;
     if (__containers[name] !== undefined) {
-      throw 'Trying to create two containers with the same name: ' + name + ' on model but it already exists.';
+      throw 'Trying to create containers with name: ' + name + ' on model but it already exists.';
     }
     __containers[name] = container;
     __registerDocumentTypeLoader(container);
@@ -340,7 +345,6 @@ angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer"
   };
 
   def.newItem = function(data)    {var self = this;
-    var deferred = $q.defer();
     var doc = {};
     var relationshipsToLink = {};
     util.copyFields(data, doc, self.__fieldNames);
@@ -353,25 +357,22 @@ angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer"
         relationshipsToLink[alias] = parentItem;
       }
     }
-    self.__postAndLoad(doc).then(function (newItem) {
+    return self.__postAndLoad(doc).then(function (newItem) {
       for (var alias in relationshipsToLink) { 
         self.__parentRelationships[alias].linkNewlyLoadedChildToParent(newItem, parentItem);
       }
-      deferred.resolve(newItem);
+      return newItem;
     });
-    return deferred.promise;
   };
 
   def.saveItem = function(item)    {var self = this;
-    var deferred = $q.defer();
     var doc = {};
     util.copyFields(item, doc, self.__fullFieldNames);
     doc.type = self.dbDocumentType;
-    self.__db.put(doc).then(function (result) {
+    return self.__db.put(doc).then(function (result) {
       item._rev = result.rev;
-      deferred.resolve(item._rev);
+      return item._rev;
     });
-    return deferred.promise;
   };
 
   def.deleteItem = function(item)    {var self = this;
@@ -498,16 +499,13 @@ angular.module('SneakerJS').factory('ManyToManyRelationship', ["$q", "BaseContai
     if (self.isLinked(leftItem, rightItem)) {
       return $q.when();
     } else {
-      var deferred = $q.defer();
-      self.__writeLinkToDatabase(leftItem, rightItem).then(function(){
+      return self.__writeLinkToDatabase(leftItem, rightItem).then(function(){
         //will have gone through loadDocumentFromDb succesfully.
         var leftEntry = self.__getInitialisedEntry(self.__leftRights, leftItem._id),
             rightEntry = self.__getInitialisedEntry(self.__rightLefts, rightItem._id);
         util.addUnique(leftEntry.items, rightItem);
         util.addUnique(rightEntry.items, leftItem);
-        deferred.resolve()
       });
-      return deferred.promise; 
     };
   };
   
@@ -561,6 +559,7 @@ angular.module('SneakerJS').factory('ManyToManyRelationship', ["$q", "BaseContai
   /*
   Should only be called if sure that items are not linked. Will reuse a document if one is available.
   */
+  //TODO: tidy this mess not to have var deferred = $q.defer()
   def.__writeLinkToDatabase = function(leftItem, rightItem)  {var self = this;
     var deferred = $q.defer(),
         doc = self.__docsForReuse.pop();
@@ -738,6 +737,61 @@ angular.module('SneakerJS').factory('ParentChildRelationship', ["$q", "BaseConta
   return ParentChildRelationship;
 }]);
 
+
+angular.module('SneakerJS').factory('Singleton', ["util", "BaseContainer", function(util, BaseContainer) {
+
+  var Singleton = function(db, name)    {var self = this;
+    self.name = name;
+    self.dbDocumentType = 'singleton__' + name;
+    self.__db = db;
+    self.__doc = null;
+  };
+  util.inheritPrototype(Singleton, BaseContainer);
+  var def = Singleton.prototype;
+  
+  def.loadDocumentFromDb = function(doc)    {var self = this;
+    if (self.__doc !== null) {
+      throw 'found singleton of type ' + self.name + ' more than once in db';
+    }
+    if (doc._id !== self.dbDocumentType) {
+      throw 'Expected singleton type ' + self.name + ' to have _id: ' + self.dbDocumentType;
+    }
+    self.__doc = doc;
+    return self.__doc.data;
+  };
+  
+  def.clear = function() {var self = this;
+    self.__doc = null;
+  };
+
+  def.getAccessFunctionDefinitions = function()    {var self = this;
+    return [
+      util.createAccessFunctionDefinition('get' + util.capitalizeFirstLetter(self.name), self.getData, false),
+      util.createAccessFunctionDefinition('set' + util.capitalizeFirstLetter(self.name), self.setData, false)
+    ]
+  };
+  
+  def.getData = function() {var self = this;
+    return self.__doc.data;
+  };
+  
+  def.setData = function(data) {var self = this;
+    if (!self.__doc){
+      self.__doc = {
+        type: self.dbDocumentType,
+        _id: self.dbDocumentType,
+        data: {}
+      }
+    }
+    angular.copy(data, self.__doc.data);
+    return self.__db.put(self.__doc).then(function (result) {
+      self.__doc._rev = result.rev;
+      return result.rev;
+    });
+  };
+  
+  return Singleton; 
+}]);
 
 
 

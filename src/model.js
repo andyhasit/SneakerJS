@@ -1,7 +1,6 @@
-"use strict";
 angular.module('SneakerJS', []);
 
-angular.module('SneakerJS').service('model', function($q, Collection, ParentChildRelationship, ManyToManyRelationship) {
+angular.module('SneakerJS').service('model', function($q, Collection, Singleton, ParentChildRelationship, ManyToManyRelationship) {
 
   var self = this,
       __db,
@@ -26,7 +25,7 @@ angular.module('SneakerJS').service('model', function($q, Collection, ParentChil
     if (__dataReady === undefined) {
       __dataReady = __initializeModel();
     }
-    return __dataReady.promise;
+    return __dataReady;
   };
   
   self.reload = function (){
@@ -49,6 +48,12 @@ angular.module('SneakerJS').service('model', function($q, Collection, ParentChil
 
   self.collection = function(singleItemName, fieldNames, options){
     var container = new Collection(__db, singleItemName, fieldNames, options);
+    __registerContainer(container);
+    return container;
+  };
+  
+  self.singleton = function(name, data){
+    var container = new Singleton(__db, name, data);
     __registerContainer(container);
     return container;
   };
@@ -80,7 +85,7 @@ angular.module('SneakerJS').service('model', function($q, Collection, ParentChil
   function __registerContainer(container) {
     var name = container.name;
     if (__containers[name] !== undefined) {
-      throw 'Trying to create two containers with the same name: ' + name + ' on model but it already exists.';
+      throw 'Trying to create containers with name: ' + name + ' on model but it already exists.';
     }
     __containers[name] = container;
     __registerDocumentTypeLoader(container);

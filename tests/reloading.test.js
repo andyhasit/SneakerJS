@@ -33,6 +33,18 @@ describe('reloading', function() {
     expect(people[1].type).toEqual('person');
   });
   
+  it('retains created singleton', function() {
+    model.singleton('settings');
+    model.setSettings({userName: 'Jane', preferences: {offset: 4, height: 68}, colours: ['blue', 'red', 'purple']});
+    flush();
+    model.reload();
+    flush();
+    var settings = model.getSettings();
+    expect(settings.userName).toEqual('Jane');
+    expect(settings.preferences).toEqual({offset: 4, height: 68});
+    expect(settings.colours).toEqual(['blue', 'red', 'purple']);
+  });
+  
   it('retains parent child relationship', function() {
     var bob = newItem('person', {name: 'Bob', age: 4});
     var jane = newItem('person', {name: 'Jane', age: 4});

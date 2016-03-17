@@ -97,7 +97,6 @@ angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContain
   };
 
   def.newItem = function(data)    {var self = this;
-    var deferred = $q.defer();
     var doc = {};
     var relationshipsToLink = {};
     util.copyFields(data, doc, self.__fieldNames);
@@ -110,25 +109,22 @@ angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContain
         relationshipsToLink[alias] = parentItem;
       }
     }
-    self.__postAndLoad(doc).then(function (newItem) {
+    return self.__postAndLoad(doc).then(function (newItem) {
       for (var alias in relationshipsToLink) { 
         self.__parentRelationships[alias].linkNewlyLoadedChildToParent(newItem, parentItem);
       }
-      deferred.resolve(newItem);
+      return newItem;
     });
-    return deferred.promise;
   };
 
   def.saveItem = function(item)    {var self = this;
-    var deferred = $q.defer();
     var doc = {};
     util.copyFields(item, doc, self.__fullFieldNames);
     doc.type = self.dbDocumentType;
-    self.__db.put(doc).then(function (result) {
+    return self.__db.put(doc).then(function (result) {
       item._rev = result.rev;
-      deferred.resolve(item._rev);
+      return item._rev;
     });
-    return deferred.promise;
   };
 
   def.deleteItem = function(item)    {var self = this;

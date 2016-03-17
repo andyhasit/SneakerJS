@@ -1,4 +1,3 @@
-
 var model, $rootScope;
 var c = console;
 /*
@@ -87,7 +86,8 @@ angular.module('PouchFake', []).factory('FakeDb', function($q) {
     //c.log(data);
     var doc = angular.copy(data);
     var id = doc._id;
-    var newRev = self.extractRev(doc._rev) + 1 + "-" + id;
+    var rev = doc._rev || "0-" + id;
+    var newRev = self.extractRev(rev) + 1 + "-" + id;
     doc._rev = newRev;
     self.__docs[id] = doc;
     return $q.when({
