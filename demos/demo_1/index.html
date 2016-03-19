@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<!--[if (gt IE 9)|!(IE)]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge<?=not request.is_local and ',chrome=1' or ''?>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kittens Demo</title>
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="node_modules/angular-ui-bootstrap/dist/ui-bootstrap-csp.css"/>
+    <link rel="stylesheet" href="style.css"/>
+  </head>
+  <body ng-app="app">
+    <!--[if lt IE 8]>
+    <p class="browserupgrade">You are using an <strong>outdated</strong>
+    browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+    <!-- Navbar ======================================= -->
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <!-- logo -->
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <!--right hand menu -->
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="container main-container" ng-controller="Ctrl">
+      <div class="row">
+        <div class="col-sm-8 col-sm-offset-2" ng-cloak>
+          <h2>People</h2>
+          <div class="thing-wrapper" ng-repeat="person in model.allPeople()">
+            <button class="btn btn-danger pull-right" ng-click="deleteItem(person)">X</button>
+            <h4>{{person.name}}</h4>
+            <strong>Cats:</strong>
+            <ul style="display:inline">
+              <li style="display:inline" ng-repeat="cat in getPersonCats(person) track by $index">
+                <span class="sub-item"> {{cat.name}}  <button ng-click="unlinkCat(person, cat)">X</button></span>
+              </li>
+            </ul>
+            <br/>
+            <strong>Dogs:</strong>
+            <ul style="display:inline">
+              <li style="display:inline" ng-repeat="cat in model.getPersonDogs(person) track by $index">
+                <span class="sub-item"> {{dog.name}}  <button ng-click="unlinkDog(person, dog)">X</button></span>
+              </li>
+            </ul>
+          </div>
+          <div class="form-inline">
+            <div class="form-group">
+              <input type="text" class="form-control" ng-model="newPersonName" placeholder="Name">
+              <button class="btn btn-success" ng-click="model.newPerson({name: newPersonName})">New person</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-8 col-sm-offset-2 object-section" ng-cloak>
+          <h2>Cats</h2>
+          <div class="thing-wrapper" ng-repeat="cat in model.allCats()">
+            <button class="btn btn-danger pull-right" ng-click="deleteItem(cat)">X</button>
+            <h4>{{cat.name}}</h4>
+            <strong>Owners:</strong>
+            <ul style="display:inline">
+              <li style="display:inline" ng-repeat="person in model.getCatOwners(cat) track by $index">
+                <span class="sub-item"> {{person.name}}  <button ng-click="model.unlinkCat(person, cat)">X</button></span>
+              </li>
+            </ul>
+          </div>
+          <div class="form-inline">
+            <div class="form-group">
+              <input type="text" class="form-control" ng-model="newCatName" placeholder="Name">
+              <button class="btn btn-success" ng-click="model.newCat({name: newCatName})">New cat</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-8 col-sm-offset-2 object-section" ng-cloak>
+          <h2>Dogs</h2>
+          <div class="thing-wrapper" ng-repeat="dog in model.allDogs()">
+            <div class="form-inline">
+              <input type="text" class="form-control" ng-model="dog.name">
+              <button class="btn btn-danger pull-right" ng-click="deleteItem(dog)">X</button>
+              <label>Set Owner</label>
+              <select class="form-control" placeholder="Owner" ng-model="dog.uiOwner" value="model.getDogOwner(dog)" ng-options="item as item.name for item in model.allPeople()"></select>
+            </div>
+
+            <strong>Owner:</strong>{{model.getDogOwner(dog)}}
+          </div>
+          <div class="form-inline">
+            <div class="form-group">
+                <!--<label>Owner</label>
+            <select class="form-control" placeholder="Owner" ng-model="data.linkPerson" ng-options="item as item.name for item in data.people()"></select>-->
+
+              <input type="text" class="form-control" ng-model="newDogName" placeholder="Name">
+              <button class="btn btn-success" ng-click="model.newDog({name: newDogName})">New dog</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </body>
+  <script src="node_modules/angular/angular.js"></script>
+  <script src="node_modules/angular-ui-router/release/angular-ui-router.js"></script>
+  <script src="node_modules/angular-ui-bootstrap/dist/ui-bootstrap.js"></script>
+  <script src="node_modules/angular-ui-bootstrap/dist/ui-bootstrap-tpls.js"></script>
+  <script src="node_modules/pouchdb/dist/pouchdb.min.js"></script>
+  <script src="node_modules/sneakerjs/dist/sneakerjs.js"></script>
+  <script src="node_modules/angular-unsavedchanges/lib/unsavedChanges.js"></script>
+  <script src="app.js"></script>
+</html>
