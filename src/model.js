@@ -1,14 +1,17 @@
 angular.module('SneakerJS', []);
 
-angular.module('SneakerJS').service('model', function($q, Collection, Singleton, ParentChildRelationship, ManyToManyRelationship) {
+angular.module('SneakerJS').service('model', function($q, $rootScope,
+    Collection, Singleton, ParentChildRelationship, ManyToManyRelationship) {
+  var __db, __loadQuery;
+  var self = this;
+  var __containers = {};
+  var __dbDocumentTypeLoaders = {};
+  var __lastPromiseInQueue = $q.when();
+  var __relationshipDefinitionFunctions = {};
+  self.changeCount = 0;
+  $rootScope.$watch(self.changeCount, function() {
 
-  var self = this,
-      __db,
-      __loadQuery,
-      __containers = {},
-      __dbDocumentTypeLoaders = {},
-      __lastPromiseInQueue = $q.when(),
-      __relationshipDefinitionFunctions = {};
+  });
 
   self.initialize = function(db, query) {
     __db = db;
@@ -27,7 +30,7 @@ angular.module('SneakerJS').service('model', function($q, Collection, Singleton,
     }
     return __dataReady;
   };
-  
+
   self.reload = function (){
     __dataReady = undefined;
     angular.forEach(__containers, function(container) {
@@ -51,7 +54,7 @@ angular.module('SneakerJS').service('model', function($q, Collection, Singleton,
     __registerContainer(container);
     return container;
   };
-  
+
   self.singleton = function(name, data){
     var container = new Singleton(__db, name, data);
     __registerContainer(container);
@@ -59,9 +62,9 @@ angular.module('SneakerJS').service('model', function($q, Collection, Singleton,
   };
 
   self.join = function(firstCollection, secondCollection, options){
-    var options = options || {},
-        container,
-        relationshipType = options.type || 'parentChild';
+    var options = options || {};
+    var container;
+    var relationshipType = options.type || 'parentChild';
     angular.forEach([firstCollection, secondCollection], function(name) {
       if (__containers[name] === undefined) {
         throw 'Failed to create join, container not found: "' + name + '" ';
@@ -116,10 +119,12 @@ angular.module('SneakerJS').service('model', function($q, Collection, Singleton,
 
   */
   self.saveItem = function(item) {
+    self.changeCount ++;
     return __containers[item.type].saveItem(item);
   };
 
   self.deleteItem = function(item) {
+    self.changeCount ++;
     return __containers[item.type].deleteItem(item);
   };
 
@@ -144,6 +149,10 @@ angular.module('SneakerJS').service('model', function($q, Collection, Singleton,
     }
   };
 
+  function safeApply(fn) {
+    ($rootScope.$$phase) ? fn() : $rootScope.$apply(fn);
+  }
+
   function __getQueuedFunction(container, containerFunction){
     return function() {
       var originalArgs = arguments;
@@ -151,6 +160,7 @@ angular.module('SneakerJS').service('model', function($q, Collection, Singleton,
       __lastPromiseInQueue.then( function() {
         __lastPromiseInQueue = containerFunction.apply(container, originalArgs);
         __lastPromiseInQueue.then(function(result) {
+          self.changeCount ++;
           deferred.resolve(result);
         });
       });
@@ -175,12 +185,13 @@ angular.module('SneakerJS').service('model', function($q, Collection, Singleton,
     }
   };
 
-  function __initializeModel(){
+  function __initializeModel() {
     return __loadQuery().then(function (result) {
       angular.forEach(result.rows, function(row){
         __addDocumentToCollection(row.doc);
       });
       __postInitialLoading();
+      return result.rows.length;
     }).catch(function (err) {
       console.log(err);
     });
@@ -208,4 +219,3 @@ angular.module('SneakerJS').service('model', function($q, Collection, Singleton,
   }
 
 });
-

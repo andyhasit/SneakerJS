@@ -61,9 +61,9 @@
             </div>
           </div>
         </div>
-
         <div class="col-sm-8 col-sm-offset-2 object-section" ng-cloak>
           <h2>Cats</h2>
+  {{model.changeCount}}
           <div class="thing-wrapper" ng-repeat="cat in model.allCats()">
             <button class="btn btn-danger pull-right" ng-click="deleteItem(cat)">X</button>
             <h4>{{cat.name}}</h4>

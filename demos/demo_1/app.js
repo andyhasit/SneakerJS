@@ -8,6 +8,7 @@ Note: demo is currently broken as I can't resolve an issue with $scope.$digest.
 */
 
 var app = angular.module('app', ['SneakerJS']);
+var c = console;
 
 app.run(function(model) {
   /*
@@ -169,18 +170,25 @@ app.controller('Ctrl', function($scope, $timeout, model) {
 
   model.dataReady().then(function() {
     $scope.model = model;
+    $scope.data = {
+      dogs: model.allDogs()
+    };
     $scope.$digest();
+    c.log(model.changeCount);
+    $scope.$watch('model.changeCount', function() {
+      c.log(model.allDogs().length);
+    });
   });
 
   $scope.deleteItem = function(item) {
-     model.deleteItem(item).then(function() {
+     model.deleteItem(item); //.then(function() {
        /*
        Attempts to get apply working have failed.
        $timeout(function(){
          $scope.$apply()
        });
        */
-     });
+     //});
   };
 
   $scope.getPersonInfo = function(person) {
