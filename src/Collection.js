@@ -24,13 +24,13 @@ angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContain
   def.registerChildRelationship = function(relationship)    {var self = this;
     self.__relationships.push(relationship);
   };
-  
+
   def.registerParentRelationship = function(relationship, foreignKey, alias)    {var self = this;
     self.__parentRelationships[alias] = relationship;
     self.__relationships.push(relationship);
     self.__fullFieldNames.push(foreignKey);
   };
-  
+
   def.registerManyToManyRelationship = function(relationship)    {var self = this;
     self.__relationships.push(relationship);
   };
@@ -43,7 +43,7 @@ angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContain
     self.__itemsAsArray.push(newItem);
     return newItem;
   };
-  
+
   def.clear = function() {var self = this;
     self.__items = {};
     self.__itemsAsArray = [];
@@ -110,7 +110,7 @@ angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContain
       }
     }
     return self.__postAndLoad(doc).then(function (newItem) {
-      for (var alias in relationshipsToLink) { 
+      for (var alias in relationshipsToLink) {
         self.__parentRelationships[alias].linkNewlyLoadedChildToParent(newItem, parentItem);
       }
       return newItem;
@@ -132,11 +132,11 @@ angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContain
       return relationship.respondToItemDeleted(item, self);
     });
     return $q.all(childDeletions).then(function() {
-      self.__db.remove(item).then(function (result) {
+      return self.__db.remove(item).then(function (result) {
         delete self.__items[item._id];
         util.removeFromArray(self.__itemsAsArray, item);
-      }, util.promiseFailed);
-    }, util.promiseFailed);
+      });
+    });
   };
 
   return Collection;

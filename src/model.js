@@ -9,10 +9,7 @@ angular.module('SneakerJS').service('model', function($q, $rootScope,
   var __lastPromiseInQueue = $q.when();
   var __relationshipDefinitionFunctions = {};
   self.changeCount = 0;
-  $rootScope.$watch(self.changeCount, function() {
-
-  });
-
+  
   self.initialize = function(db, query) {
     __db = db;
     __loadQuery = query || function() {
@@ -120,12 +117,12 @@ angular.module('SneakerJS').service('model', function($q, $rootScope,
   */
   self.saveItem = function(item) {
     self.changeCount ++;
-    return __containers[item.type].saveItem(item);
+    return $q.when(__containers[item.type].saveItem(item));
   };
 
   self.deleteItem = function(item) {
     self.changeCount ++;
-    return __containers[item.type].deleteItem(item);
+    return $q.when(__containers[item.type].deleteItem(item));
   };
 
   function __createAccessFunctions(container){
@@ -137,7 +134,8 @@ angular.module('SneakerJS').service('model', function($q, $rootScope,
         func = __getNonQueuedFunction(container, accessFunc.containerFunction);
       }
       if (self[fnName] !== undefined) {
-        throw 'Container ' + container.name + ' trying to create function ' + fnName + ' on model but it already exists.';
+        throw 'Container ' + container.name + ' trying to create function ' +
+                fnName + ' on model but it already exists.';
       }
       self[fnName] = func;
     });
@@ -149,11 +147,10 @@ angular.module('SneakerJS').service('model', function($q, $rootScope,
     }
   };
 
-  function safeApply(fn) {
-    ($rootScope.$$phase) ? fn() : $rootScope.$apply(fn);
-  }
-
   function __getQueuedFunction(container, containerFunction){
+    /*This returns the function which actually gets called on e.g. mode.newPerson()
+    Keep the the $q.defer() so it wraps it in a $q promise.
+    */
     return function() {
       var originalArgs = arguments;
       var deferred = $q.defer();

@@ -1,9 +1,7 @@
 /*
-Andrew Buchan - 19/0/2016
+Andrew Buchan - 20/03/2016
 --------------------------
-This mini demo shows how to use SneakerJS as at version 0.2.1
-
-Note: demo is currently broken as I can't resolve an issue with $scope.$digest.
+This mini demo shows how to use SneakerJS as at version 0.2.2
 
 */
 
@@ -170,25 +168,11 @@ app.controller('Ctrl', function($scope, $timeout, model) {
 
   model.dataReady().then(function() {
     $scope.model = model;
-    $scope.data = {
-      dogs: model.allDogs()
-    };
     $scope.$digest();
-    c.log(model.changeCount);
-    $scope.$watch('model.changeCount', function() {
-      c.log(model.allDogs().length);
-    });
   });
 
   $scope.deleteItem = function(item) {
-     model.deleteItem(item); //.then(function() {
-       /*
-       Attempts to get apply working have failed.
-       $timeout(function(){
-         $scope.$apply()
-       });
-       */
-     //});
+     model.deleteItem(item);
   };
 
   $scope.getPersonInfo = function(person) {

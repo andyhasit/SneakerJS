@@ -9,10 +9,7 @@ angular.module('SneakerJS').service('model', ["$q", "$rootScope", "Collection", 
   var __lastPromiseInQueue = $q.when();
   var __relationshipDefinitionFunctions = {};
   self.changeCount = 0;
-  $rootScope.$watch(self.changeCount, function() {
-
-  });
-
+  
   self.initialize = function(db, query) {
     __db = db;
     __loadQuery = query || function() {
@@ -120,12 +117,12 @@ angular.module('SneakerJS').service('model', ["$q", "$rootScope", "Collection", 
   */
   self.saveItem = function(item) {
     self.changeCount ++;
-    return __containers[item.type].saveItem(item);
+    return $q.when(__containers[item.type].saveItem(item));
   };
 
   self.deleteItem = function(item) {
     self.changeCount ++;
-    return __containers[item.type].deleteItem(item);
+    return $q.when(__containers[item.type].deleteItem(item));
   };
 
   function __createAccessFunctions(container){
@@ -137,7 +134,8 @@ angular.module('SneakerJS').service('model', ["$q", "$rootScope", "Collection", 
         func = __getNonQueuedFunction(container, accessFunc.containerFunction);
       }
       if (self[fnName] !== undefined) {
-        throw 'Container ' + container.name + ' trying to create function ' + fnName + ' on model but it already exists.';
+        throw 'Container ' + container.name + ' trying to create function ' +
+                fnName + ' on model but it already exists.';
       }
       self[fnName] = func;
     });
@@ -149,11 +147,10 @@ angular.module('SneakerJS').service('model', ["$q", "$rootScope", "Collection", 
     }
   };
 
-  function safeApply(fn) {
-    ($rootScope.$$phase) ? fn() : $rootScope.$apply(fn);
-  }
-
   function __getQueuedFunction(container, containerFunction){
+    /*This returns the function which actually gets called on e.g. mode.newPerson()
+    Keep the the $q.defer() so it wraps it in a $q promise.
+    */
     return function() {
       var originalArgs = arguments;
       var deferred = $q.defer();
@@ -282,13 +279,13 @@ angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer"
   def.registerChildRelationship = function(relationship)    {var self = this;
     self.__relationships.push(relationship);
   };
-  
+
   def.registerParentRelationship = function(relationship, foreignKey, alias)    {var self = this;
     self.__parentRelationships[alias] = relationship;
     self.__relationships.push(relationship);
     self.__fullFieldNames.push(foreignKey);
   };
-  
+
   def.registerManyToManyRelationship = function(relationship)    {var self = this;
     self.__relationships.push(relationship);
   };
@@ -301,7 +298,7 @@ angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer"
     self.__itemsAsArray.push(newItem);
     return newItem;
   };
-  
+
   def.clear = function() {var self = this;
     self.__items = {};
     self.__itemsAsArray = [];
@@ -368,7 +365,7 @@ angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer"
       }
     }
     return self.__postAndLoad(doc).then(function (newItem) {
-      for (var alias in relationshipsToLink) { 
+      for (var alias in relationshipsToLink) {
         self.__parentRelationships[alias].linkNewlyLoadedChildToParent(newItem, parentItem);
       }
       return newItem;
@@ -390,11 +387,11 @@ angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer"
       return relationship.respondToItemDeleted(item, self);
     });
     return $q.all(childDeletions).then(function() {
-      self.__db.remove(item).then(function (result) {
+      return self.__db.remove(item).then(function (result) {
         delete self.__items[item._id];
         util.removeFromArray(self.__itemsAsArray, item);
-      }, util.promiseFailed);
-    }, util.promiseFailed);
+      });
+    });
   };
 
   return Collection;

@@ -34,6 +34,70 @@
       </div>
     </nav>
     <div class="container main-container" ng-controller="Ctrl">
+
+      <div class="row">
+        <div class="col-sm-8 col-sm-offset-2 object-section" ng-cloak>
+          <div class="form-inline">
+            <div class="form-group">
+              <input type="text" class="form-control" ng-model="newPersonName" placeholder="Name">
+              <button class="btn btn-success" ng-click="model.newPerson({name: newPersonName})">New person</button>
+            </div>
+            <br/>
+            <div class="form-group">
+              <input type="text" class="form-control" ng-model="newCatName" placeholder="Name">
+              <button class="btn btn-success" ng-click="model.newCat({name: newCatName})">New cat</button>
+            </div>
+            <br/>
+            <div class="form-group">
+                <!--<label>Owner</label>
+            <select class="form-control" placeholder="Owner" ng-model="data.linkPerson" ng-options="item as item.name for item in data.people()"></select>-->
+
+              <input type="text" class="form-control" ng-model="newDogName" placeholder="Name">
+              <button class="btn btn-success" ng-click="model.newDog({name: newDogName})">New dog</button>
+            </div>
+            <br/>
+            <div class="form-group">
+              <label>Set dog owner</label>
+              <br/>
+              <select class="form-control"
+                 placeholder="Owner"
+                 ng-model="setDogOwnerPerson"
+                 ng-options="item as item.name for item in model.allPeople()"
+                 ng-change="alert(5);">
+              </select>
+              <select class="form-control"
+                 placeholder="Dog"
+                 ng-model="setDogOwnerDog"
+                 ng-options="item as item.name for item in model.allDogs()"
+                 >
+              </select>
+              <button class="btn btn-success" ng-click="model.setDogOwner(setDogOwnerDog, setDogOwnerPerson)">Apply</button>
+            </div>
+            <br/>
+            <div class="form-group">
+              <label>Link cats to owners</label>
+              <br/>
+              <select class="form-control"
+                 placeholder="Owner"
+                 ng-model="linkCatToPersonPerson"
+                 ng-options="item as item.name for item in model.allPeople()"
+                 ng-change="alert(5);">
+              </select>
+              <select class="form-control"
+                 placeholder="Dog"
+                 ng-model="linkCatToPersonCat"
+                 ng-options="item as item.name for item in model.allCats()"
+                 >
+              </select>
+              <button class="btn btn-success"
+                ng-click="model.addPersonCatAsOwner(linkCatToPersonPerson, linkCatToPersonCat)">Link</button>
+              <button class="btn btn-success"
+                ng-click="model.removePersonCatAsOwner(linkCatToPersonPerson, linkCatToPersonCat)">Unlink</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="row">
         <div class="col-sm-8 col-sm-offset-2" ng-cloak>
           <h2>People</h2>
@@ -42,70 +106,47 @@
             <h4>{{person.name}}</h4>
             <strong>Cats:</strong>
             <ul style="display:inline">
-              <li style="display:inline" ng-repeat="cat in getPersonCats(person) track by $index">
-                <span class="sub-item"> {{cat.name}}  <button ng-click="unlinkCat(person, cat)">X</button></span>
+              <li style="display:inline" ng-repeat="cat in model.getPersonCatsAsOwner(person) track by $index">
+                <span class="sub-item"> {{cat.name}} </span>
               </li>
             </ul>
-            <br/>
+            <br/><br/>
             <strong>Dogs:</strong>
             <ul style="display:inline">
-              <li style="display:inline" ng-repeat="cat in model.getPersonDogs(person) track by $index">
-                <span class="sub-item"> {{dog.name}}  <button ng-click="unlinkDog(person, dog)">X</button></span>
+              <li style="display:inline" ng-repeat="dog in model.getPersonDogs(person) track by $index">
+                <span class="sub-item"> {{dog.name}}</span>
               </li>
             </ul>
           </div>
-          <div class="form-inline">
-            <div class="form-group">
-              <input type="text" class="form-control" ng-model="newPersonName" placeholder="Name">
-              <button class="btn btn-success" ng-click="model.newPerson({name: newPersonName})">New person</button>
-            </div>
-          </div>
         </div>
+      </div>
+
+      <div class="row">
         <div class="col-sm-8 col-sm-offset-2 object-section" ng-cloak>
           <h2>Cats</h2>
-  {{model.changeCount}}
           <div class="thing-wrapper" ng-repeat="cat in model.allCats()">
             <button class="btn btn-danger pull-right" ng-click="deleteItem(cat)">X</button>
             <h4>{{cat.name}}</h4>
             <strong>Owners:</strong>
             <ul style="display:inline">
-              <li style="display:inline" ng-repeat="person in model.getCatOwners(cat) track by $index">
-                <span class="sub-item"> {{person.name}}  <button ng-click="model.unlinkCat(person, cat)">X</button></span>
+              <li style="display:inline" ng-repeat="person in model.getCatPeopleAsOwner(cat) track by $index">
+                <span class="sub-item"> {{person.name}}</span>
               </li>
             </ul>
           </div>
-          <div class="form-inline">
-            <div class="form-group">
-              <input type="text" class="form-control" ng-model="newCatName" placeholder="Name">
-              <button class="btn btn-success" ng-click="model.newCat({name: newCatName})">New cat</button>
-            </div>
-          </div>
         </div>
+      </div>
 
+      <div class="row">
         <div class="col-sm-8 col-sm-offset-2 object-section" ng-cloak>
           <h2>Dogs</h2>
           <div class="thing-wrapper" ng-repeat="dog in model.allDogs()">
-            <div class="form-inline">
-              <input type="text" class="form-control" ng-model="dog.name">
-              <button class="btn btn-danger pull-right" ng-click="deleteItem(dog)">X</button>
-              <label>Set Owner</label>
-              <select class="form-control" placeholder="Owner" ng-model="dog.uiOwner" value="model.getDogOwner(dog)" ng-options="item as item.name for item in model.allPeople()"></select>
-            </div>
-
-            <strong>Owner:</strong>{{model.getDogOwner(dog)}}
-          </div>
-          <div class="form-inline">
-            <div class="form-group">
-                <!--<label>Owner</label>
-            <select class="form-control" placeholder="Owner" ng-model="data.linkPerson" ng-options="item as item.name for item in data.people()"></select>-->
-
-              <input type="text" class="form-control" ng-model="newDogName" placeholder="Name">
-              <button class="btn btn-success" ng-click="model.newDog({name: newDogName})">New dog</button>
-            </div>
+            <h4>{{dog.name}}</h4>
+            <strong>Owner:</strong> <span class="sub-item">{{model.getDogOwner(dog).name}}</span>
           </div>
         </div>
-
       </div>
+
     </div>
   </body>
   <script src="node_modules/angular/angular.js"></script>
