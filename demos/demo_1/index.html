@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge<?=not request.is_local and ',chrome=1' or ''?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kittens Demo</title>
+    <title>SneakerJS Demo 1</title>
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="node_modules/angular-ui-bootstrap/dist/ui-bootstrap-csp.css"/>
     <link rel="stylesheet" href="style.css"/>
@@ -34,7 +34,14 @@
       </div>
     </nav>
     <div class="container main-container" ng-controller="Ctrl">
-
+      <div class="row">
+        <div class="col-sm-8 col-sm-offset-2">
+          <h1>SneakerJS Demo</h1>
+          Dogs have one owner. Cats have many owners.<br/>
+          Create some dogs and cats, change thier owners and then delete some items.<br/>
+          Check the source code of this demo (app.js and index.html).<br/>
+        </div>
+      </div>
       <div class="row">
         <div class="col-sm-8 col-sm-offset-2 object-section" ng-cloak>
           <div class="form-inline">
@@ -49,9 +56,6 @@
             </div>
             <br/>
             <div class="form-group">
-                <!--<label>Owner</label>
-            <select class="form-control" placeholder="Owner" ng-model="data.linkPerson" ng-options="item as item.name for item in data.people()"></select>-->
-
               <input type="text" class="form-control" ng-model="newDogName" placeholder="Name">
               <button class="btn btn-success" ng-click="model.newDog({name: newDogName})">New dog</button>
             </div>

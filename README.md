@@ -5,16 +5,8 @@
 #SneakerJS
 Entity relationship automation for AngularJS and CouchDB (or PouchDB etc...)
 
-####Update 19 03 2016:
 
-I uploaded this to **npm** to make it easier to copy in and out of personal projects, I did not expect 100's of downloads. So just to clarify:
-  - This project is at **alpha** stage, so might be making sweeping changes to the design.
-  - For usage documentation, see the included demo (which I will endeavour to keep up to date now that people are actually looking at it)
-  - Although I use SneakerJS successfully in a few personal projects the demo is currently broken as I couldn't resolve a **$scope.$digest** issue and don't have time right now, and am thinking of how SneakerJS could solve that instead of you having to do that in the controller (contributions welcome).
-  - Do come back and check (**npm update sneakerjs**) as it is being refined.
-
-
-##What does it do?
+#What does it do?
 
 ###1. Lets you define your model in simple terms
 
@@ -84,10 +76,17 @@ For most use cases, you can just point to the db and let SneakerJS take care of 
 
 For more control, just pass a proxy DB to Sneaker which exposes **post, put, save** and **delete**. With this you can write to other backends (or stick to CouchDB and store data your way) and still get Sneaker at the front end.
 
-##Detailed examples
+#Installation
 
-Check the included demo project.
+    npm install sneakerjs --save
 
-##Overall Status
+#Usage
 
-This project is in Alpha stage. A good number of tests are passing but more are needed.
+The included demo project is set up to show you exactly how to use SneakerJS, and also acts as a good seed project.
+
+#Comments
+
+This project is in Alpha stage. It works great but hasn't been seriously battle tested. 
+
+Please report any issue you may find :-)
+
