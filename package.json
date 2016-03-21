@@ -1,6 +1,6 @@
 {
   "name": "sneakerjs",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Entity relationship automation for AngularJS and CouchDB/PouchDB",
   "main": "gulpfile.js",
   "directories": {
