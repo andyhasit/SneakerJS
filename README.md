@@ -10,24 +10,29 @@ Entity relationship automation for AngularJS and CouchDB (or PouchDB etc...)
 
 ###1. Lets you define your model in simple terms
 
-    // Define some collections (collectionName, [fields])
+    // Define some collections as <collectionName, [fields]>
     model.collection('customer', ['name', 'email'])
-    model.collection('order', ['value', 'status'])
-    model.define('shipment', ['date'])
+    model.collection('shipment', ['date'])
+    model.collection('order', ['value', 'status'], {
+      proto: Order 
+    }) 
+    /*
+    Items in the 'order' collection will be initialised with prototyp 'Order'
+    which you will have defined elsewhere..
+    */
     
-    // Create a one-to-many join
+    /*
+    Define the relationships.
+    You can do a lot more with joins, see demo app.
+    */
     model.join('customer', 'order')
-      
-    // Create a many-to-many join
-    model.join('order', 'shipment', {type: 'manyToMany'})
-
-    // Joins can be customised
+    model.join('order', 'shipment', {type: 'many-to-many'})
 
       
 
 ###2. Generates intelligently named functions
 
-Sneaker generates functions named after your collections (how cool is that?!)
+Sneaker generates functions based on your collections, such as:
 
     model.getCustomer(<id>)
     model.newCustomer({name: 'joe', email: 'joe@joe.com'})
@@ -40,17 +45,13 @@ Sneaker generates functions named after your collections (how cool is that?!)
     
 This makes it easier to write highly readable code.
 
-#####About these functions:
-  - Functions that change the database return promises (not shown here for simplicity) 
-  - Queries return directly (which helps with databinding)
-  - The objects are all plain JavaScript objects (but you can specify prototypes for items in your collections)
-  - You can also use aliases to control the generated function names.
-  
-###3. Saves to database (handling relationships)
+###3. Persists changes to PouchDB/CouchDB
 
-Those functions save changes to your CouchDB/PouchDB database automatically. 
+Those functions save changes to your CouchDB/PouchDB database, and eliminate the need for you to do decide how to store joins, or create and extra collection when you just to have a many-to-many join.
 
-Sneaker also understands relationships.
+###4. Handles relationships
+
+SneakerJS understands relationships.
 
     model.newOrder({value: 100, customer: <customer>})
 
@@ -64,17 +65,28 @@ This would delete orders which belong to that customer (and any items that belon
 Many-to-many relationships seamlessly creates join documents in the db which you never deal with in the app.
 
 
-###4. Provides ultra fast in-memory joins
+###4. Provides super fast querying
 
-SneakerJS maps all the relationships, so querying accross multiple joins is fast.
+SneakerJS maps all the relationships bi-directionally in memory, so querying accross multiple joins is lightening fast compared to a map/reduce approach.
 
-This lets you build apps with large amounts of interconnected collections that would grind to a halt if your joins were implemented using map reduce.
+This lets you build apps with large amounts of joined collections that would otherwise perform very slowly or require a lot of extra work to avoid that.
 
-###5. Removes design decisions for RAD
+###5. Doesn't tie you down
 
-For most use cases, you can just point to the db and let SneakerJS take care of how the data and joins are stored (it strikes a balance between minimising write operations and db size).
+Although it works with PouchDB out of the box, switching backends is easy. 
 
-For more control, just pass a proxy DB to Sneaker which exposes **post, put, save** and **delete**. With this you can write to other backends (or stick to CouchDB and store data your way) and still get Sneaker at the front end.
+SneakerJS just needs an object which exposes **post, put, save** and **delete**, so you could simply pass your own object which routes those calls to an API, meaning you can structure the data how you want it on the database, but still get SneakerJS functionality in your app.
+
+If you don't like the idea of passing the **model** object to controllers, you can implement your own functions in your prototypes and ask them to call those instead.
+
+
+#####More information:
+
+  - Action functions (new, save etc...) return $q promises which automatically trigger angular's digest loop, so no need to use $apply() all over the place.
+  - Query functions (get, find etc...) return arrays, not promises, which makes binding to scopes very easy.
+  - The objects in these collections are plain JavaScript objects, but you can tell SneakerJS to use specific prototypes when creating them if you like.
+  - You can use aliases to control the generated function names and allow multiple same-type relationships between the same two collections. 
+  
 
 #Installation
 
@@ -84,7 +96,7 @@ For more control, just pass a proxy DB to Sneaker which exposes **post, put, sav
 
 The included demo project is set up to show you exactly how to use SneakerJS, and also acts as a good seed project.
 
-#Comments
+#Status
 
 This project is in Alpha stage. It works great but hasn't been seriously battle tested. 
 

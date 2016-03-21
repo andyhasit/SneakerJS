@@ -1,27 +1,9 @@
-.main-container {
-  margin-top: 60px;
-}
 
 /*Because ng-cloak not working as expected */
 [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak,.x-ng-cloak {
   display: none !important;
 }
 
-.object-section {
-  padding-top: 15px;
-}
-
-.sub-item {
-  margin-left: 7px;
-}
-
-
-.thing-wrapper {
-   margin: 20px 0;
-   border-bottom: 1px solid #ccc;
-   padding-bottom: 10px;
-}
-
-.form-inline > * {
-   margin:7px 3px;
+.form-inline input, .form-inline select {
+   margin-bottom: 5px;
 }

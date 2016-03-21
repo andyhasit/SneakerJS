@@ -171,12 +171,4 @@ app.controller('Ctrl', function($scope, $timeout, model) {
     $scope.$digest();
   });
 
-  $scope.deleteItem = function(item) {
-     model.deleteItem(item);
-  };
-
-  $scope.getPersonInfo = function(person) {
-    alert(person.getInfo());
-  };
-
 });

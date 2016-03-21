@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SneakerJS Demo 1</title>
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="node_modules/angular-ui-bootstrap/dist/ui-bootstrap-csp.css"/>
     <link rel="stylesheet" href="style.css"/>
   </head>
   <body ng-app="app">
@@ -15,51 +14,44 @@
     browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
     <!-- Navbar ======================================= -->
-    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-      <div class="container-fluid">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <!-- logo -->
-        </div>
-        <div class="collapse navbar-collapse navbar-ex1-collapse">
-          <ul class="nav navbar-nav navbar-right">
-            <!--right hand menu -->
-          </ul>
-        </div>
-      </div>
-    </nav>
-    <div class="container main-container" ng-controller="Ctrl">
+    <div class="container" ng-controller="Ctrl">
       <div class="row">
         <div class="col-sm-8 col-sm-offset-2">
           <h1>SneakerJS Demo</h1>
           Dogs have one owner. Cats have many owners.<br/>
-          Create some dogs and cats, change thier owners and then delete some items.<br/>
-          Check the source code of this demo (app.js and index.html).<br/>
+          Create some dogs and cats, change their owners and then delete some items to see what happens.<br/>
+          Check the source code of this demo (app.js and index.html).
+          <br/><br/>
         </div>
       </div>
+
       <div class="row">
-        <div class="col-sm-8 col-sm-offset-2 object-section" ng-cloak>
+        <div class="col-sm-4 col-sm-offset-2" ng-cloak>
           <div class="form-inline">
             <div class="form-group">
+              <label>Add a person</label>
+              <br/>
               <input type="text" class="form-control" ng-model="newPersonName" placeholder="Name">
-              <button class="btn btn-success" ng-click="model.newPerson({name: newPersonName})">New person</button>
+              <button class="btn btn-success" ng-click="model.newPerson({name: newPersonName})">Add</button>
             </div>
             <br/>
             <div class="form-group">
+              <label>Add a cat</label>
+              <br/>
               <input type="text" class="form-control" ng-model="newCatName" placeholder="Name">
-              <button class="btn btn-success" ng-click="model.newCat({name: newCatName})">New cat</button>
+              <button class="btn btn-success" ng-click="model.newCat({name: newCatName})">Add</button>
             </div>
             <br/>
             <div class="form-group">
+              <label>Add a dog</label>
+              <br/>
               <input type="text" class="form-control" ng-model="newDogName" placeholder="Name">
-              <button class="btn btn-success" ng-click="model.newDog({name: newDogName})">New dog</button>
+              <button class="btn btn-success" ng-click="model.newDog({name: newDogName})">Add</button>
             </div>
-            <br/>
+          </div>
+        </div>
+        <div class="col-sm-4" ng-cloak>
+          <div class="form-inline">
             <div class="form-group">
               <label>Set dog owner</label>
               <br/>
@@ -79,24 +71,45 @@
             </div>
             <br/>
             <div class="form-group">
-              <label>Link cats to owners</label>
+              <label>Link cat to person as owner</label>
               <br/>
               <select class="form-control"
                  placeholder="Owner"
-                 ng-model="linkCatToPersonPerson"
+                 ng-model="linkCatToPersonAsOwnerPerson"
                  ng-options="item as item.name for item in model.allPeople()"
                  ng-change="alert(5);">
               </select>
               <select class="form-control"
                  placeholder="Dog"
-                 ng-model="linkCatToPersonCat"
+                 ng-model="linkCatToPersonAsOwnerCat"
                  ng-options="item as item.name for item in model.allCats()"
                  >
               </select>
               <button class="btn btn-success"
-                ng-click="model.addPersonCatAsOwner(linkCatToPersonPerson, linkCatToPersonCat)">Link</button>
+                ng-click="model.addPersonCatAsOwner(linkCatToPersonAsOwnerPerson, linkCatToPersonAsOwnerCat)">Link</button>
               <button class="btn btn-success"
-                ng-click="model.removePersonCatAsOwner(linkCatToPersonPerson, linkCatToPersonCat)">Unlink</button>
+                ng-click="model.removePersonCatAsOwner(linkCatToPersonAsOwnerPerson, linkCatToPersonAsOwnerCat)">Unlink</button>
+            </div>
+            <br/>
+            <div class="form-group">
+              <label>Link cat to person as friend</label>
+              <br/>
+              <select class="form-control"
+                 placeholder="Owner"
+                 ng-model="linkCatToPersonAsFriendPerson"
+                 ng-options="item as item.name for item in model.allPeople()"
+                 ng-change="alert(5);">
+              </select>
+              <select class="form-control"
+                 placeholder="Dog"
+                 ng-model="linkCatToPersonAsFriendCat"
+                 ng-options="item as item.name for item in model.allCats()"
+                 >
+              </select>
+              <button class="btn btn-success"
+                ng-click="model.addPersonCatAsFriend(linkCatToPersonAsFriendPerson, linkCatToPersonAsFriendCat)">Link</button>
+              <button class="btn btn-success"
+                ng-click="model.removePersonCatAsFriend(linkCatToPersonAsFriendPerson, linkCatToPersonAsFriendCat)">Unlink</button>
             </div>
           </div>
         </div>
@@ -105,60 +118,111 @@
       <div class="row">
         <div class="col-sm-8 col-sm-offset-2" ng-cloak>
           <h2>People</h2>
-          <div class="thing-wrapper" ng-repeat="person in model.allPeople()">
-            <button class="btn btn-danger pull-right" ng-click="deleteItem(person)">X</button>
-            <h4>{{person.name}}</h4>
-            <strong>Cats:</strong>
-            <ul style="display:inline">
-              <li style="display:inline" ng-repeat="cat in model.getPersonCatsAsOwner(person) track by $index">
-                <span class="sub-item"> {{cat.name}} </span>
-              </li>
-            </ul>
-            <br/><br/>
-            <strong>Dogs:</strong>
-            <ul style="display:inline">
-              <li style="display:inline" ng-repeat="dog in model.getPersonDogs(person) track by $index">
-                <span class="sub-item"> {{dog.name}}</span>
-              </li>
-            </ul>
-          </div>
+          <table class="table table-striped table-condensed">
+            <tr>
+              <th>Name</th>
+              <th>Cats owned</th>
+              <th>Cat friends</th>
+              <th>Dogs</th>
+              <th class="text-right">Actions</th>
+            </tr>
+            <tr ng-repeat="person in model.allPeople()">
+              <td>
+                <h4>{{person.name}}</h4>
+              </td>
+              <td>
+                <ul>
+                  <li ng-repeat="cat in model.getPersonCatsAsOwner(person) track by $index">
+                    {{cat.name}}
+                  </li>
+                </ul>
+              </td>
+              <td>
+                <ul>
+                  <li ng-repeat="cat in model.getPersonCatsAsFriend(person) track by $index">
+                    {{cat.name}}
+                  </li>
+                </ul>
+              </td>
+              <td>
+                <ul>
+                  <li ng-repeat="dog in model.getPersonDogs(person) track by $index">
+                    {{dog.name}}
+                  </li>
+                </ul>
+              </td>
+              <td>
+                <button class="btn btn-danger pull-right" ng-click="model.deleteItem(person)">X</button>
+              </td>
+            </tr>
+          </table>
         </div>
       </div>
 
       <div class="row">
-        <div class="col-sm-8 col-sm-offset-2 object-section" ng-cloak>
+        <div class="col-sm-8 col-sm-offset-2" ng-cloak>
           <h2>Cats</h2>
-          <div class="thing-wrapper" ng-repeat="cat in model.allCats()">
-            <button class="btn btn-danger pull-right" ng-click="deleteItem(cat)">X</button>
-            <h4>{{cat.name}}</h4>
-            <strong>Owners:</strong>
-            <ul style="display:inline">
-              <li style="display:inline" ng-repeat="person in model.getCatPeopleAsOwner(cat) track by $index">
-                <span class="sub-item"> {{person.name}}</span>
-              </li>
-            </ul>
-          </div>
+          <table class="table table-striped table-condensed">
+            <tr>
+              <th>Name</th>
+              <th>Owners</th>
+              <th>Friends</th>
+              <th class="text-right">Actions</th>
+            </tr>
+            <tr ng-repeat="cat in model.allCats()">
+              <td>
+                <h4>{{cat.name}}</h4>
+              </td>
+              <td>
+                <ul>
+                  <li ng-repeat="person in model.getCatPeopleAsOwner(cat) track by $index">
+                    {{person.name}}
+                  </li>
+                </ul>
+              </td>
+              <td>
+                <ul>
+                  <li ng-repeat="person in model.getCatPeopleAsFriend(cat) track by $index">
+                    {{person.name}}
+                  </li>
+                </ul>
+              </td>
+              <td>
+                <button class="btn btn-danger pull-right" ng-click="model.deleteItem(cat)">X</button>
+              </td>
+            </tr>
+          </table>
         </div>
       </div>
 
       <div class="row">
-        <div class="col-sm-8 col-sm-offset-2 object-section" ng-cloak>
+        <div class="col-sm-8 col-sm-offset-2" ng-cloak>
           <h2>Dogs</h2>
-          <div class="thing-wrapper" ng-repeat="dog in model.allDogs()">
-            <h4>{{dog.name}}</h4>
-            <strong>Owner:</strong> <span class="sub-item">{{model.getDogOwner(dog).name}}</span>
-          </div>
+          <table class="table table-striped table-condensed">
+            <tr>
+              <th>Name</th>
+              <th>Owner</th>
+              <th class="text-right">Actions</th>
+            </tr>
+            <tr ng-repeat="dog in model.allDogs()">
+              <td>
+                <h4>{{dog.name}}</h4>
+              </td>
+              <td>
+                {{model.getDogOwner(dog).name}}
+              </td>
+              <td>
+                <button class="btn btn-danger pull-right" ng-click="model.deleteItem(dog)">X</button>
+              </td>
+            </tr>
+          </table>
         </div>
       </div>
 
     </div>
   </body>
-  <script src="node_modules/angular/angular.js"></script>
-  <script src="node_modules/angular-ui-router/release/angular-ui-router.js"></script>
-  <script src="node_modules/angular-ui-bootstrap/dist/ui-bootstrap.js"></script>
-  <script src="node_modules/angular-ui-bootstrap/dist/ui-bootstrap-tpls.js"></script>
+  <script src="node_modules/angular/angular.min.js"></script>
   <script src="node_modules/pouchdb/dist/pouchdb.min.js"></script>
   <script src="node_modules/sneakerjs/dist/sneakerjs.js"></script>
-  <script src="node_modules/angular-unsavedchanges/lib/unsavedChanges.js"></script>
   <script src="app.js"></script>
 </html>
