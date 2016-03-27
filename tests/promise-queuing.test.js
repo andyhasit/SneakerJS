@@ -6,10 +6,10 @@ describe('Promise queuing', function() {
   
   var task1, task2, task3, task4, project1, project2;
   
-  beforeEach(inject(function( _model_, _$rootScope_, FakeDb, _$q_) {
+  beforeEach(inject(function( SneakerInitialize, _$rootScope_, FakeDb, $q) {
     $rootScope = _$rootScope_;
-    db = new FakeDb();
-    $q = _$q_;
+    var db = new FakeDb();
+    model = SneakerInitialize({}, db);
     db.setData('task', ['name'], [
       ['task1'],
       ['task2'],
@@ -18,9 +18,6 @@ describe('Promise queuing', function() {
       ['project1'],
       ['project2'],
     ]);
-    
-    model = _model_;
-    model.initialize(db);
     model.collection('project', ['name']);
     model.collection('task', ['name']);
     model.join('project', 'task');

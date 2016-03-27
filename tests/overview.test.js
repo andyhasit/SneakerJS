@@ -3,13 +3,18 @@ describe('overview', function() {
   
   beforeEach(module('SneakerJS'));
   beforeEach(module('PouchFake'));
-  
+  beforeEach(module('TestProject'));
+
+  angular.module('TestProject', []).service('TestMode', function(SneakerInitialize, FakeDb) {
+    SneakerInitialize(this, new FakeDb());
+  });
+    
   var task1, task2, task3, task4, project1, project2;
   
-  beforeEach(inject(function( _model_, _$rootScope_, FakeDb, $q) {
+  beforeEach(inject(function( _TestMode_, _$rootScope_, FakeDb, $q) {
     $rootScope = _$rootScope_;
-    var db = new FakeDb();
-    model = _model_;
+    model = _TestMode_;
+    var db = model.__db;
     
     db.setData('task', ['name', 'fk__project'], [
       ['task1', null],
@@ -20,7 +25,7 @@ describe('overview', function() {
       ['project2'],
     ]);
     
-    model.initialize(db);
+    //model.initialize(db);
     model.collection('project', ['name']);
     model.collection('task', ['name']);
     model.join('project', 'task');

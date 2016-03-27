@@ -4,11 +4,10 @@ describe('creating items', function() {
   beforeEach(module('SneakerJS'));
   beforeEach(module('PouchFake'));
   
-  beforeEach(inject(function( _model_, _$rootScope_, FakeDb, $q) {
+  beforeEach(inject(function( SneakerInitialize, _$rootScope_, FakeDb, $q) {
     $rootScope = _$rootScope_;
     var db = new FakeDb();
-    model = _model_;
-    model.initialize(db);
+    model = SneakerInitialize({}, db);
     model.collection('person', ['name', 'age']);
     model.collection('cat', ['name']);
     model.join('person', 'cat', {parentAlias: 'owner'});

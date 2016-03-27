@@ -17,8 +17,8 @@ Entity relationship automation for AngularJS and CouchDB (or PouchDB etc...)
       proto: Order 
     }) 
     /*
-    Items in the 'order' collection will be initialised with prototyp 'Order'
-    which you will have defined elsewhere..
+    Items in the 'order' collection will be initialised with prototype 'Order'
+    which you will have defined elsewhere.
     */
     
     /*
