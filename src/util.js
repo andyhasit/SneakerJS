@@ -1,7 +1,5 @@
 
-
-
-angular.module('SneakerJS').service('util', function($q) {
+angular.module('SneakerJS').service('SnjsUtil', function($q) {
   var self = this;
 
   self.capitalizeFirstLetter = function(str) {

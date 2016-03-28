@@ -1,7 +1,6 @@
 
-angular.module('SneakerJS').factory('SneakerModel', function(
-    $q, Collection, Singleton, ParentChildRelationship, ManyToManyRelationship
-    ){
+angular.module('SneakerJS').factory('SneakerModel', function($q, SnjsCollection, 
+    SnjsSingleton, SnjsParentChildRelationship, SnjsManyToManyRelationship){
   
   var SneakerModel = function(dbWrapper, initialLoadQuery) {var self = this;
     self.__db = dbWrapper;
@@ -44,13 +43,13 @@ angular.module('SneakerJS').factory('SneakerModel', function(
     /************* MODEL DEFINITION FUNCTIONS *************/
 
     self.collection = function(singleItemName, fieldNames, options) {
-      var container = new Collection(self.__db, singleItemName, fieldNames, options);
+      var container = new SnjsCollection(self.__db, singleItemName, fieldNames, options);
       self.__registerContainer(container);
       return container;
     };
 
     self.singleton = function(name, data) {
-      var container = new Singleton(self.__db, name, data);
+      var container = new SnjsSingleton(self.__db, name, data);
       self.__registerContainer(container);
       return container;
     };
@@ -67,11 +66,11 @@ angular.module('SneakerJS').factory('SneakerModel', function(
       if (relationshipType === 'parentChild') {
         var parentCollection = self.__containers[firstCollection];
         var childCollection = self.__containers[secondCollection];
-        container = new ParentChildRelationship(self.__db, parentCollection, childCollection, options);
+        container = new SnjsParentChildRelationship(self.__db, parentCollection, childCollection, options);
       } else if (relationshipType.toLowerCase() === 'many-to-many') {
         var leftCollection = self.__containers[firstCollection];
         var rightCollection = self.__containers[secondCollection];
-        container = new ManyToManyRelationship(self.__db, leftCollection, rightCollection, options);
+        container = new SnjsManyToManyRelationship(self.__db, leftCollection, rightCollection, options);
       } else {
         throw '"' + relationshipType + '" is not a valid relationship type';
       }

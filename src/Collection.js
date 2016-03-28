@@ -1,7 +1,8 @@
 
-angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContainer) {
-
-  var Collection = function(db, singleItemName, fieldNames, options)    {var self = this;
+angular.module('SneakerJS').factory('SnjsCollection', function(SnjsUtil, $q, SnjsBaseContainer) {
+  
+  var util = SnjsUtil;
+  var SnjsCollection = function(db, singleItemName, fieldNames, options)    {var self = this;
     var options = options || {};
     self.itemName = singleItemName;
     self.name = singleItemName; //This is how a relationship references collection
@@ -18,8 +19,8 @@ angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContain
     self.__fullFieldNames.push('_id');
     self.__fullFieldNames.push('_rev');
   };
-  util.inheritPrototype(Collection, BaseContainer);
-  var def = Collection.prototype;
+  util.inheritPrototype(SnjsCollection, SnjsBaseContainer);
+  var def = SnjsCollection.prototype;
 
   def.registerChildRelationship = function(relationship)    {var self = this;
     self.__relationships.push(relationship);
@@ -139,5 +140,5 @@ angular.module('SneakerJS').factory('Collection', function(util, $q, BaseContain
     });
   };
 
-  return Collection;
+  return SnjsCollection;
 });

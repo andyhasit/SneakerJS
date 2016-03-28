@@ -6,7 +6,7 @@ var ngAnnotate = require('gulp-ng-annotate');
 var sourcemaps = require('gulp-sourcemaps');
 
 details = {
-  start: 'src/model.js',
+  start: 'src/Imitialize.js',
   sources: 'src/**/*.js',
   dest: 'dist',
 }

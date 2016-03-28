@@ -9,11 +9,10 @@ describe('test test-helpers', function() {
   Project.prototype.details = function() {
     return 'this is ' + this.name;
   };
-  beforeEach(inject(function( _model_, _$rootScope_, FakeDb, $q) {
+  beforeEach(inject(function(SneakerInitialize, _$rootScope_, FakeDb, $q) {
     $rootScope = _$rootScope_;
     var db = new FakeDb();
-    model = _model_;
-    model.initialize(db);
+    model = SneakerInitialize({}, db);
     
     projectCollection = model.collection('project', ['name'], {proto: Project});
     taskCollection = model.collection('task', ['name']);

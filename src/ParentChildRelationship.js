@@ -1,7 +1,8 @@
 
-angular.module('SneakerJS').factory('ParentChildRelationship', function($q, BaseContainer, util) {
+angular.module('SneakerJS').factory('SnjsParentChildRelationship', function($q, SnjsBaseContainer, SnjsUtil) {
 
-  var ParentChildRelationship = function(db, parentCollection, childCollection, options)    {var self = this;
+  var util = SnjsUtil;
+  var SnjsParentChildRelationship = function(db, parentCollection, childCollection, options)    {var self = this;
     var options = options || {};
     self.__db = db;
     self.__parentCollection = parentCollection;
@@ -17,8 +18,8 @@ angular.module('SneakerJS').factory('ParentChildRelationship', function($q, Base
     parentCollection.registerChildRelationship(self);
     childCollection.registerParentRelationship(self, self.foreignKey, self.__parentAlias);
   };
-  util.inheritPrototype(ParentChildRelationship, BaseContainer);
-  var def = ParentChildRelationship.prototype;
+  util.inheritPrototype(SnjsParentChildRelationship, SnjsBaseContainer);
+  var def = SnjsParentChildRelationship.prototype;
 
   def.getAccessFunctionDefinitions = function()  {var self = this;
     var capitalize = util.capitalizeFirstLetter,
@@ -119,5 +120,5 @@ angular.module('SneakerJS').factory('ParentChildRelationship', function($q, Base
     return $q.when(true);
   };
 
-  return ParentChildRelationship;
+  return SnjsParentChildRelationship;
 });

@@ -12,9 +12,10 @@
   }
 */
     
-angular.module('SneakerJS').factory('ManyToManyRelationship', function($q, BaseContainer, util) {
+angular.module('SneakerJS').factory('SnjsManyToManyRelationship', function($q, SnjsBaseContainer, SnjsUtil) {
   
-  var ManyToManyRelationship = function(db, leftCollection, rightCollection, options)    {var self = this;
+  var util = SnjsUtil;
+  var SnjsManyToManyRelationship = function(db, leftCollection, rightCollection, options)    {var self = this;
     var options = options || {};
     self.__rightCollection = rightCollection;
     self.__leftCollection = leftCollection;
@@ -35,8 +36,8 @@ angular.module('SneakerJS').factory('ManyToManyRelationship', function($q, BaseC
     rightCollection.registerManyToManyRelationship(self);
     leftCollection.registerManyToManyRelationship(self);
   };
-  util.inheritPrototype(ManyToManyRelationship, BaseContainer);
-  var def = ManyToManyRelationship.prototype;
+  util.inheritPrototype(SnjsManyToManyRelationship, SnjsBaseContainer);
+  var def = SnjsManyToManyRelationship.prototype;
   
   def.getAccessFunctionDefinitions = function()  {var self = this;
     var capitalize = util.capitalizeFirstLetter,
@@ -175,7 +176,7 @@ angular.module('SneakerJS').factory('ManyToManyRelationship', function($q, BaseC
       if (succesfullyLoaded) {
         deferred.resolve();
       } else {
-        throw 'ManyToManyRelationship.__writeLinkToDatabase failed to load document. This should not have happened.'
+        throw 'SnjsManyToManyRelationship.__writeLinkToDatabase failed to load document. This should not have happened.'
       }
     }
     if (doc) {
@@ -219,5 +220,5 @@ angular.module('SneakerJS').factory('ManyToManyRelationship', function($q, BaseC
     return entry;
   };
   
-  return ManyToManyRelationship;
+  return SnjsManyToManyRelationship;
 });

@@ -1,14 +1,15 @@
 
-angular.module('SneakerJS').factory('Singleton', function(util, BaseContainer) {
-
-  var Singleton = function(db, name)    {var self = this;
+angular.module('SneakerJS').factory('SnjsSingleton', function(SnjsUtil, BaseContainer) {
+  
+  var util = SnjsUtil;
+  var SnjsSingleton = function(db, name)    {var self = this;
     self.name = name;
     self.dbDocumentType = 'singleton__' + name;
     self.__db = db;
     self.__doc = null;
   };
-  util.inheritPrototype(Singleton, BaseContainer);
-  var def = Singleton.prototype;
+  util.inheritPrototype(SnjsSingleton, BaseContainer);
+  var def = SnjsSingleton.prototype;
   
   def.loadDocumentFromDb = function(doc)    {var self = this;
     if (self.__doc !== null) {
@@ -51,5 +52,5 @@ angular.module('SneakerJS').factory('Singleton', function(util, BaseContainer) {
     });
   };
   
-  return Singleton; 
+  return SnjsSingleton; 
 });

@@ -1,13 +1,13 @@
 
-angular.module('SneakerJS').factory('BaseContainer', function($q) {
+angular.module('SneakerJS').factory('SnjsBaseContainer', function($q) {
   /*
   A collection has an internal index of the objects in the database.
   What it uses as keys and values is up to the derived class.
   */
-  var BaseContainer = function()    {var self = this;
+  var SnjsBaseContainer = function()    {var self = this;
     self.__db = null;
   };
-  var def = BaseContainer.prototype;
+  var def = SnjsBaseContainer.prototype;
   
   def.postInitialLoading = function() {
     //override if container needs to do any post loading operations
@@ -32,5 +32,5 @@ angular.module('SneakerJS').factory('BaseContainer', function($q) {
     return defered.promise;
   };
   
-  return BaseContainer;
+  return SnjsBaseContainer;
 });
