@@ -3,10 +3,10 @@ describe('many to many db reuse', function() {
   beforeEach(module('SneakerJS'));
   beforeEach(module('PouchFake'));
 
-  beforeEach(inject(function( SneakerInitialize, _$rootScope_, FakeDb, $q) {
+  beforeEach(inject(function(SneakerModel, _$rootScope_, FakeDb, $q) {
     $rootScope = _$rootScope_;
     var db = new FakeDb();
-    model = SneakerInitialize({}, db);
+    model = SneakerModel(db);
 
     projectCollection = model.collection('project', ['name']);
     taskCollection = model.collection('task', ['name']);

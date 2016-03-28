@@ -5,8 +5,8 @@ describe('overview', function() {
   beforeEach(module('PouchFake'));
   beforeEach(module('TestProject'));
 
-  angular.module('TestProject', []).service('TestMode', function(SneakerInitialize, FakeDb) {
-    SneakerInitialize(this, new FakeDb());
+  angular.module('TestProject', []).service('TestMode', function(SneakerModel, FakeDb) {
+    SneakerModel.call(this, new FakeDb());
   });
     
   var task1, task2, task3, task4, project1, project2;

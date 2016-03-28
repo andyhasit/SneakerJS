@@ -1,5 +1,5 @@
 
-angular.module('SneakerJS').factory('SnjsSingleton', function(SnjsUtil, BaseContainer) {
+angular.module('SneakerJS').factory('SnjsSingleton', function(SnjsUtil, SnjsBaseContainer) {
   
   var util = SnjsUtil;
   var SnjsSingleton = function(db, name)    {var self = this;
@@ -8,7 +8,7 @@ angular.module('SneakerJS').factory('SnjsSingleton', function(SnjsUtil, BaseCont
     self.__db = db;
     self.__doc = null;
   };
-  util.inheritPrototype(SnjsSingleton, BaseContainer);
+  util.inheritPrototype(SnjsSingleton, SnjsBaseContainer);
   var def = SnjsSingleton.prototype;
   
   def.loadDocumentFromDb = function(doc)    {var self = this;

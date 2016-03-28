@@ -13,10 +13,10 @@ describe('loading', function() {
     return 'this is ' + this.name;
   };
   
-  beforeEach(inject(function( SneakerInitialize, _$rootScope_, FakeDb, $q) {
+  beforeEach(inject(function(SneakerModel, _$rootScope_, FakeDb, $q) {
     $rootScope = _$rootScope_;
     var db = new FakeDb();
-    model = SneakerInitialize({}, db);
+    model = SneakerModel(db);
         
     projectCollection = model.collection('project', ['name'], {proto: Project});
     taskCollection = model.collection('task', ['name']);
