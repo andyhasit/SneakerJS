@@ -37,7 +37,7 @@ angular.module('SneakerJS').factory('SneakerModel', function($q, SnjsCollection,
     self.printInfo = function() {
       angular.forEach(self.__containers, function(container) {
         angular.forEach(container.getAccessFunctionDefinitions(), function(accessFunc) {
-          console.log('model.' + accessFunc.ModelFunctionName);
+          console.log('db.' + accessFunc.ModelFunctionName);
         });
       });
     };
@@ -56,7 +56,7 @@ angular.module('SneakerJS').factory('SneakerModel', function($q, SnjsCollection,
       return container;
     };
     
-    self.parentChild = function(parentCollectionName, childCollectionName, options) {
+    self.oneToMany = function(parentCollectionName, childCollectionName, options) {
       self.__ensureCollectionsExist([parentCollectionName, childCollectionName]);
       var parentCollection = self.__containers[parentCollectionName];
       var childCollection = self.__containers[childCollectionName];

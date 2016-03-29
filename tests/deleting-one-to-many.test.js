@@ -30,7 +30,7 @@ describe('deleting one to many', function() {
 
     projectCollection = model.collection('project', ['name']);
     taskCollection = model.collection('task', ['name']);
-    taskProjectJoin = model.parentChild('project', 'task'); // in other words: {cascadeDelete: true} //TODO: test default sticks
+    taskProjectJoin = model.oneToMany('project', 'task'); // in other words: {cascadeDelete: true} //TODO: test default sticks
     model.dataReady();
     flush();
 
@@ -75,8 +75,8 @@ describe('deleting one to many', function() {
     projectCollection = model.collection('project', ['name']);
     taskCollection = model.collection('task', ['name']);
     subtaskCollection = model.collection('subtask', ['name']);
-    model.parentChild('project', 'task');
-    model.parentChild('task', 'subtask');
+    model.oneToMany('project', 'task');
+    model.oneToMany('task', 'subtask');
     model.dataReady();
     flush();
     
@@ -109,7 +109,7 @@ describe('deleting one to many', function() {
 
     projectCollection = model.collection('project', ['name']);
     taskCollection = model.collection('task', ['name']);
-    taskProjectJoin = model.parentChild('project', 'task', {cascadeDelete: false});
+    taskProjectJoin = model.oneToMany('project', 'task', {cascadeDelete: false});
     model.dataReady();
     flush();
     

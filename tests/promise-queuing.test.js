@@ -21,7 +21,7 @@ describe('Promise queuing', function() {
     ]);
     model.collection('project', ['name']);
     model.collection('task', ['name']);
-    model.parentChild('project', 'task');
+    model.oneToMany('project', 'task');
     
     model.dataReady();
     flush();

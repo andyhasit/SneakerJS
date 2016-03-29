@@ -10,7 +10,7 @@ describe('creating items', function() {
     model = new SneakerModel(db);
     model.collection('person', ['name', 'age']);
     model.collection('cat', ['name']);
-    model.parentChild('person', 'cat', {parentAlias: 'owner'});
+    model.oneToMany('person', 'cat', {parentAlias: 'owner'});
     ready();
   }));
   

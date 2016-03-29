@@ -28,7 +28,7 @@ describe('overview', function() {
     //model.initialize(db);
     model.collection('project', ['name']);
     model.collection('task', ['name']);
-    model.parentChild('project', 'task');
+    model.oneToMany('project', 'task');
     /* Start conditions:
       project1: [task2]
       project2: []

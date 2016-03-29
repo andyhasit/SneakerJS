@@ -21,7 +21,7 @@ describe('loading', function() {
     projectCollection = model.collection('project', ['name'], {proto: Project});
     taskCollection = model.collection('task', ['name']);
     tagCollection = model.collection('tag', ['name']);
-    taskProjectJoin = model.parentChild('project', 'task');
+    taskProjectJoin = model.oneToMany('project', 'task');
     tagProjectJoin = model.manyToMany('project', 'tag');
     
     db.setData(taskCollection.dbDocumentType, ['name', taskProjectJoin.foreignKey], [

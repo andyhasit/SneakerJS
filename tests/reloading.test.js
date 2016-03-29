@@ -15,7 +15,7 @@ describe('reloading', function() {
     model.collection('person', ['name', 'age']);
     model.collection('cat', ['name']);
     model.collection('tag', ['name']);
-    model.parentChild('person', 'cat', {parentAlias: 'owner'});
+    model.oneToMany('person', 'cat', {parentAlias: 'owner'});
     model.manyToMany('cat', 'tag');
     ready();
   }));
