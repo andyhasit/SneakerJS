@@ -18,12 +18,14 @@ You define collections and the relationships between them. Like so:
     db.collection('customer', ['name', 'email'])
     db.collection('order', ['value', 'status'])
     db.collection('item', ['description', 'price'])
+    db.parentChild('customer', 'order')
+    db.parentChild('order', 'item')
     /*
-    The default join is read as parent > child
-    We can do a lot more than this, such as assign prototypes, many-to-many, and aliases.
+    We can do a lot more than this, such as:
+      - specify constructor functions to initiate collection items
+      - many-to-many
+      - relationship aliases
     */
-    db.join('customer', 'order')
-    db.join('order', 'item')
     
     
 SneakerJS will then:
@@ -206,8 +208,9 @@ SneakerJS's changes are wrapped in **$q** promises, meaning they will trigger An
 
 The SneakerModel starts off with the following functions:
 
-  - **collection** - For defining collections.
-  - **join** - For defining relationships between collections.
+  - **collection** - To define a collection.
+  - **oneToMany** - To define a parent child relationships between two collections.
+  - **manyToMany** - For defining relationships between collections.
   - **singleton** - For defining a singleton in the database.
   - **dataReady** - Returns a promise once the data is loaded.
   - **deleteItem** - generic function for deleting any collection item.

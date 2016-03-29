@@ -1,0 +1,8 @@
+
+UNIT TESTS NEEDED:
+  * For many to many document reuse
+  * Ensure we can use SneakerModel.call(this) (resulting object doesn't have a prototype?)
+  
+TASKS:
+  * Create Plunkr
+  * 

@@ -8,8 +8,8 @@ describe('Promise queuing', function() {
   
   beforeEach(inject(function(SneakerModel, _$rootScope_, FakeDb, $q) {
     $rootScope = _$rootScope_;
-    var db = new FakeDb();
-    model = SneakerModel(db);
+    db = new FakeDb();
+    model = new SneakerModel(db);
     
     db.setData('task', ['name'], [
       ['task1'],
@@ -21,7 +21,7 @@ describe('Promise queuing', function() {
     ]);
     model.collection('project', ['name']);
     model.collection('task', ['name']);
-    model.join('project', 'task');
+    model.parentChild('project', 'task');
     
     model.dataReady();
     flush();

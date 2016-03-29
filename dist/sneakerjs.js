@@ -1,13 +1,13 @@
 
-angular.module('SneakerJS').factory('BaseContainer', ["$q", function($q) {
+angular.module('SneakerJS').factory('SnjsBaseContainer', ["$q", function($q) {
   /*
   A collection has an internal index of the objects in the database.
   What it uses as keys and values is up to the derived class.
   */
-  var BaseContainer = function()    {var self = this;
+  var SnjsBaseContainer = function()    {var self = this;
     self.__db = null;
   };
-  var def = BaseContainer.prototype;
+  var def = SnjsBaseContainer.prototype;
   
   def.postInitialLoading = function() {
     //override if container needs to do any post loading operations
@@ -32,12 +32,13 @@ angular.module('SneakerJS').factory('BaseContainer', ["$q", function($q) {
     return defered.promise;
   };
   
-  return BaseContainer;
+  return SnjsBaseContainer;
 }]);
 
-angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer", function(util, $q, BaseContainer) {
-
-  var Collection = function(db, singleItemName, fieldNames, options)    {var self = this;
+angular.module('SneakerJS').factory('SnjsCollection', ["SnjsUtil", "$q", "SnjsBaseContainer", function(SnjsUtil, $q, SnjsBaseContainer) {
+  
+  var util = SnjsUtil;
+  var SnjsCollection = function(db, singleItemName, fieldNames, options)    {var self = this;
     var options = options || {};
     self.itemName = singleItemName;
     self.name = singleItemName; //This is how a relationship references collection
@@ -54,8 +55,8 @@ angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer"
     self.__fullFieldNames.push('_id');
     self.__fullFieldNames.push('_rev');
   };
-  util.inheritPrototype(Collection, BaseContainer);
-  var def = Collection.prototype;
+  util.inheritPrototype(SnjsCollection, SnjsBaseContainer);
+  var def = SnjsCollection.prototype;
 
   def.registerChildRelationship = function(relationship)    {var self = this;
     self.__relationships.push(relationship);
@@ -175,18 +176,9 @@ angular.module('SneakerJS').factory('Collection', ["util", "$q", "BaseContainer"
     });
   };
 
-  return Collection;
+  return SnjsCollection;
 }]);
 
-
-angular.module('SneakerJS', []);
-
-angular.module('SneakerJS').service('SneakerInitialize', ["$q", "SneakerModel", function($q, SneakerModel) {
-  return function(target, dbWrapper, initialLoadQuery) {
-    SneakerModel.apply(target, [dbWrapper, initialLoadQuery]);
-    return target;
-  }
-}]);
     
 /*
   Left and right may be absent from register.
@@ -201,9 +193,10 @@ angular.module('SneakerJS').service('SneakerInitialize', ["$q", "SneakerModel", 
   }
 */
     
-angular.module('SneakerJS').factory('ManyToManyRelationship', ["$q", "BaseContainer", "util", function($q, BaseContainer, util) {
+angular.module('SneakerJS').factory('SnjsManyToManyRelationship', ["$q", "SnjsBaseContainer", "SnjsUtil", function($q, SnjsBaseContainer, SnjsUtil) {
   
-  var ManyToManyRelationship = function(db, leftCollection, rightCollection, options)    {var self = this;
+  var util = SnjsUtil;
+  var SnjsManyToManyRelationship = function(db, leftCollection, rightCollection, options)    {var self = this;
     var options = options || {};
     self.__rightCollection = rightCollection;
     self.__leftCollection = leftCollection;
@@ -224,8 +217,8 @@ angular.module('SneakerJS').factory('ManyToManyRelationship', ["$q", "BaseContai
     rightCollection.registerManyToManyRelationship(self);
     leftCollection.registerManyToManyRelationship(self);
   };
-  util.inheritPrototype(ManyToManyRelationship, BaseContainer);
-  var def = ManyToManyRelationship.prototype;
+  util.inheritPrototype(SnjsManyToManyRelationship, SnjsBaseContainer);
+  var def = SnjsManyToManyRelationship.prototype;
   
   def.getAccessFunctionDefinitions = function()  {var self = this;
     var capitalize = util.capitalizeFirstLetter,
@@ -364,7 +357,7 @@ angular.module('SneakerJS').factory('ManyToManyRelationship', ["$q", "BaseContai
       if (succesfullyLoaded) {
         deferred.resolve();
       } else {
-        throw 'ManyToManyRelationship.__writeLinkToDatabase failed to load document. This should not have happened.'
+        throw 'SnjsManyToManyRelationship.__writeLinkToDatabase failed to load document. This should not have happened.'
       }
     }
     if (doc) {
@@ -408,12 +401,11 @@ angular.module('SneakerJS').factory('ManyToManyRelationship', ["$q", "BaseContai
     return entry;
   };
   
-  return ManyToManyRelationship;
+  return SnjsManyToManyRelationship;
 }]);
 
-angular.module('SneakerJS').factory('SneakerModel', ["$q", "Collection", "Singleton", "ParentChildRelationship", "ManyToManyRelationship", function(
-    $q, Collection, Singleton, ParentChildRelationship, ManyToManyRelationship
-    ){
+angular.module('SneakerJS').factory('SneakerModel', ["$q", "SnjsCollection", "SnjsSingleton", "SnjsParentChildRelationship", "SnjsManyToManyRelationship", function($q, SnjsCollection, 
+    SnjsSingleton, SnjsParentChildRelationship, SnjsManyToManyRelationship){
   
   var SneakerModel = function(dbWrapper, initialLoadQuery) {var self = this;
     self.__db = dbWrapper;
@@ -456,13 +448,13 @@ angular.module('SneakerJS').factory('SneakerModel', ["$q", "Collection", "Single
     /************* MODEL DEFINITION FUNCTIONS *************/
 
     self.collection = function(singleItemName, fieldNames, options) {
-      var container = new Collection(self.__db, singleItemName, fieldNames, options);
+      var container = new SnjsCollection(self.__db, singleItemName, fieldNames, options);
       self.__registerContainer(container);
       return container;
     };
 
     self.singleton = function(name, data) {
-      var container = new Singleton(self.__db, name, data);
+      var container = new SnjsSingleton(self.__db, name, data);
       self.__registerContainer(container);
       return container;
     };
@@ -479,18 +471,41 @@ angular.module('SneakerJS').factory('SneakerModel', ["$q", "Collection", "Single
       if (relationshipType === 'parentChild') {
         var parentCollection = self.__containers[firstCollection];
         var childCollection = self.__containers[secondCollection];
-        container = new ParentChildRelationship(self.__db, parentCollection, childCollection, options);
+        container = new SnjsParentChildRelationship(self.__db, parentCollection, childCollection, options);
       } else if (relationshipType.toLowerCase() === 'many-to-many') {
         var leftCollection = self.__containers[firstCollection];
         var rightCollection = self.__containers[secondCollection];
-        container = new ManyToManyRelationship(self.__db, leftCollection, rightCollection, options);
+        container = new SnjsManyToManyRelationship(self.__db, leftCollection, rightCollection, options);
       } else {
         throw '"' + relationshipType + '" is not a valid relationship type';
       }
-      self.__registerContainer(container);
-      return container;
+      return self.__registerContainer(container);
+    };
+    
+    self.parentChild = function(parentCollectionName, childCollectionName, options) {
+      self.__ensureCollectionsExist([parentCollectionName, childCollectionName]);
+      var parentCollection = self.__containers[parentCollectionName];
+      var childCollection = self.__containers[childCollectionName];
+      var container = new SnjsParentChildRelationship(self.__db, parentCollection, childCollection, options);
+      return self.__registerContainer(container);
+    };
+    
+    self.manyToMany = function(leftCollectionName, rightCollectionName, options) {
+      self.__ensureCollectionsExist([leftCollectionName, rightCollectionName]);
+      var leftCollection = self.__containers[leftCollectionName];
+      var rightCollection = self.__containers[rightCollectionName];
+      container = new SnjsManyToManyRelationship(self.__db, leftCollection, rightCollection, options);
+      return self.__registerContainer(container);
     };
 
+    self.__ensureCollectionsExist = function(collectionNames) {
+      angular.forEach(collectionNames, function(name) {
+        if (self.__containers[name] === undefined) {
+          throw 'Failed to create relationship, container not found: "' + name + '" ';
+        }
+      });
+    };
+    
     self.__registerContainer = function(container) {
       var name = container.name;
       if (self.__containers[name] !== undefined) {
@@ -499,6 +514,7 @@ angular.module('SneakerJS').factory('SneakerModel', ["$q", "Collection", "Single
       self.__containers[name] = container;
       self.__registerDocumentTypeLoader(container);
       self.__createAccessFunctions(container);
+      return container;
     };
 
     /************* COLLECTION ACCESS FUNCTIONALITY ************
@@ -629,9 +645,10 @@ angular.module('SneakerJS').factory('SneakerModel', ["$q", "Collection", "Single
   
 }]);
 
-angular.module('SneakerJS').factory('ParentChildRelationship', ["$q", "BaseContainer", "util", function($q, BaseContainer, util) {
+angular.module('SneakerJS').factory('SnjsParentChildRelationship', ["$q", "SnjsBaseContainer", "SnjsUtil", function($q, SnjsBaseContainer, SnjsUtil) {
 
-  var ParentChildRelationship = function(db, parentCollection, childCollection, options)    {var self = this;
+  var util = SnjsUtil;
+  var SnjsParentChildRelationship = function(db, parentCollection, childCollection, options)    {var self = this;
     var options = options || {};
     self.__db = db;
     self.__parentCollection = parentCollection;
@@ -647,8 +664,8 @@ angular.module('SneakerJS').factory('ParentChildRelationship', ["$q", "BaseConta
     parentCollection.registerChildRelationship(self);
     childCollection.registerParentRelationship(self, self.foreignKey, self.__parentAlias);
   };
-  util.inheritPrototype(ParentChildRelationship, BaseContainer);
-  var def = ParentChildRelationship.prototype;
+  util.inheritPrototype(SnjsParentChildRelationship, SnjsBaseContainer);
+  var def = SnjsParentChildRelationship.prototype;
 
   def.getAccessFunctionDefinitions = function()  {var self = this;
     var capitalize = util.capitalizeFirstLetter,
@@ -749,20 +766,21 @@ angular.module('SneakerJS').factory('ParentChildRelationship', ["$q", "BaseConta
     return $q.when(true);
   };
 
-  return ParentChildRelationship;
+  return SnjsParentChildRelationship;
 }]);
 
 
-angular.module('SneakerJS').factory('Singleton', ["util", "BaseContainer", function(util, BaseContainer) {
-
-  var Singleton = function(db, name)    {var self = this;
+angular.module('SneakerJS').factory('SnjsSingleton', ["SnjsUtil", "SnjsBaseContainer", function(SnjsUtil, SnjsBaseContainer) {
+  
+  var util = SnjsUtil;
+  var SnjsSingleton = function(db, name)    {var self = this;
     self.name = name;
     self.dbDocumentType = 'singleton__' + name;
     self.__db = db;
     self.__doc = null;
   };
-  util.inheritPrototype(Singleton, BaseContainer);
-  var def = Singleton.prototype;
+  util.inheritPrototype(SnjsSingleton, SnjsBaseContainer);
+  var def = SnjsSingleton.prototype;
   
   def.loadDocumentFromDb = function(doc)    {var self = this;
     if (self.__doc !== null) {
@@ -805,12 +823,10 @@ angular.module('SneakerJS').factory('Singleton', ["util", "BaseContainer", funct
     });
   };
   
-  return Singleton; 
+  return SnjsSingleton; 
 }]);
 
-
-
-angular.module('SneakerJS').service('util', ["$q", function($q) {
+angular.module('SneakerJS').service('SnjsUtil', ["$q", function($q) {
   var self = this;
 
   self.capitalizeFirstLetter = function(str) {

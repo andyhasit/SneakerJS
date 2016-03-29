@@ -6,7 +6,7 @@ describe('naming singleton', function() {
   beforeEach(inject(function(SneakerModel, _$rootScope_, FakeDb, $q) {
     $rootScope = _$rootScope_;
     var db = new FakeDb();
-    model = SneakerModel(db);
+    model = new SneakerModel(db);
   }));
   
   it('creates accessor functions', function() {

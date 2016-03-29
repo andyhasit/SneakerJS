@@ -6,13 +6,13 @@ describe('many to many db reuse', function() {
   beforeEach(inject(function(SneakerModel, _$rootScope_, FakeDb, $q) {
     $rootScope = _$rootScope_;
     var db = new FakeDb();
-    model = SneakerModel(db);
+    model = new SneakerModel(db);
 
     projectCollection = model.collection('project', ['name']);
     taskCollection = model.collection('task', ['name']);
     tagCollection = model.collection('tag', ['name']);
-    taskProjectJoin = model.join('project', 'task');
-    tagProjectJoin = model.join('project', 'tag', {type: 'many-to-many'});
+    taskProjectJoin = model.parentChild('project', 'task');
+    tagProjectJoin = model.manyToMany('project', 'tag');
     db.setData(tagProjectJoin.dbDocumentType, ['left', 'right'], [
       ['project_1', '89898989'],
       ['project_1', '89898989'],

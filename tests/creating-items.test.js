@@ -7,10 +7,10 @@ describe('creating items', function() {
   beforeEach(inject(function(SneakerModel, _$rootScope_, FakeDb, $q) {
     $rootScope = _$rootScope_;
     var db = new FakeDb();
-    model = SneakerModel(db);
+    model = new SneakerModel(db);
     model.collection('person', ['name', 'age']);
     model.collection('cat', ['name']);
-    model.join('person', 'cat', {parentAlias: 'owner'});
+    model.parentChild('person', 'cat', {parentAlias: 'owner'});
     ready();
   }));
   

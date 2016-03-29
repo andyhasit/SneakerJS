@@ -1,4 +1,6 @@
 
+angular.module('SneakerJS', []);
+
 angular.module('SneakerJS').factory('SneakerModel', function($q, SnjsCollection, 
     SnjsSingleton, SnjsParentChildRelationship, SnjsManyToManyRelationship){
   
@@ -53,31 +55,31 @@ angular.module('SneakerJS').factory('SneakerModel', function($q, SnjsCollection,
       self.__registerContainer(container);
       return container;
     };
-
-    self.join = function(firstCollection, secondCollection, options) {
-      var options = options || {};
-      var container;
-      var relationshipType = options.type || 'parentChild';
-      angular.forEach([firstCollection, secondCollection], function(name) {
-        if (self.__containers[name] === undefined) {
-          throw 'Failed to create join, container not found: "' + name + '" ';
-        }
-      });
-      if (relationshipType === 'parentChild') {
-        var parentCollection = self.__containers[firstCollection];
-        var childCollection = self.__containers[secondCollection];
-        container = new SnjsParentChildRelationship(self.__db, parentCollection, childCollection, options);
-      } else if (relationshipType.toLowerCase() === 'many-to-many') {
-        var leftCollection = self.__containers[firstCollection];
-        var rightCollection = self.__containers[secondCollection];
-        container = new SnjsManyToManyRelationship(self.__db, leftCollection, rightCollection, options);
-      } else {
-        throw '"' + relationshipType + '" is not a valid relationship type';
-      }
-      self.__registerContainer(container);
-      return container;
+    
+    self.parentChild = function(parentCollectionName, childCollectionName, options) {
+      self.__ensureCollectionsExist([parentCollectionName, childCollectionName]);
+      var parentCollection = self.__containers[parentCollectionName];
+      var childCollection = self.__containers[childCollectionName];
+      var container = new SnjsParentChildRelationship(self.__db, parentCollection, childCollection, options);
+      return self.__registerContainer(container);
+    };
+    
+    self.manyToMany = function(leftCollectionName, rightCollectionName, options) {
+      self.__ensureCollectionsExist([leftCollectionName, rightCollectionName]);
+      var leftCollection = self.__containers[leftCollectionName];
+      var rightCollection = self.__containers[rightCollectionName];
+      container = new SnjsManyToManyRelationship(self.__db, leftCollection, rightCollection, options);
+      return self.__registerContainer(container);
     };
 
+    self.__ensureCollectionsExist = function(collectionNames) {
+      angular.forEach(collectionNames, function(name) {
+        if (self.__containers[name] === undefined) {
+          throw 'Failed to create relationship, container not found: "' + name + '" ';
+        }
+      });
+    };
+    
     self.__registerContainer = function(container) {
       var name = container.name;
       if (self.__containers[name] !== undefined) {
@@ -86,6 +88,7 @@ angular.module('SneakerJS').factory('SneakerModel', function($q, SnjsCollection,
       self.__containers[name] = container;
       self.__registerDocumentTypeLoader(container);
       self.__createAccessFunctions(container);
+      return container;
     };
 
     /************* COLLECTION ACCESS FUNCTIONALITY ************
