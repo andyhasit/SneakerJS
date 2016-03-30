@@ -82,7 +82,6 @@ angular.module('PouchFake', []).factory('FakeDb', function($q) {
   }
 
   def.put = function(data) {var self = this;
-  c.log(arguments);
     var doc = angular.copy(data);
     var id = doc._id;
     var rev = doc._rev || "0-" + id;

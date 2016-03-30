@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "angular-mocks": "^1.4.8",
+    "coveralls": "^2.11.9",
     "gulp": "^3.5.6",
     "gulp-concat": "^2.2.0",
     "gulp-ng-annotate": "^1.1.0",
