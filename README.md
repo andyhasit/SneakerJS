@@ -1,32 +1,45 @@
+[npm-url]: https://npmjs/package/sneakerjs
+[npm-version-image]: https://badge.fury.io/js/sneakerjs.svg
+[npm-downloads-image]: https://img.shields.io/npm/dt/sneakerjs.svg
+[travis-image]: https://img.shields.io/travis/andyhasit/SneakerJS.svg
+[travis-url]: https://travis-ci.org/andyhasit/SneakerJS
+[coveralls-image]: https://img.shields.io/coveralls/andyhasit/SneakerJS.svg
+[coveralls-url]: https://coveralls.io/github/andyhasit/SneakerJS
+
 <p align="center">
-<img src="logo.gif" width="300">
+<img src="logo.gif" width="250">
 </p>
 
 # SneakerJS
-
 Entity relationship automation for AngularJS.
+
+[![npm version][npm-version-image]][npm-url]
+[![npm downloads][npm-downloads-image]][npm-url]
+[![Build Status][travis-image]][travis-url]
+[![Coverage Status][coveralls-image]][coveralls-url]
 
 # What does it do?
 
-You define collections and the relationships between them. Like so:
+You define collections and the relationships between them:
 
-    /*
-    Our shopping app has customers
-    Each customer has multiple orders
-    Each order has multiple items
-    */
-    db.collection('customer', ['name', 'email'])
-    db.collection('order', ['value', 'status'])
-    db.collection('item', ['description', 'price'])
-    db.oneToMany('customer', 'order')
-    db.oneToMany('order', 'item')
-    /*
-    We can do a lot more than this, such as:
-      - specify constructor functions to initiate collection items
-      - many-to-many
-      - relationship aliases
-    */
-    
+```javascript
+/*
+A shopping app has customers
+Each customer has multiple orders
+Each order has multiple items
+*/
+db.collection('customer', ['name', 'email'])
+db.collection('order', ['value', 'status'])
+db.collection('item', ['description', 'price'])
+db.oneToMany('customer', 'order')
+db.oneToMany('order', 'item')
+/*
+We can do a lot more than this, such as:
+  - specify constructor functions to initiate collection items
+  - many-to-many
+  - relationship aliases
+*/
+```    
     
 SneakerJS will then:
 
@@ -34,14 +47,17 @@ SneakerJS will then:
 
 Some of the functions SneakerJS will generate given the above definitions:
 
-    db.getCustomer(<id>)
-    db.newCustomer({name: 'joe', email: 'joe@joe.com'})
-    db.newOrder({value: 100, customer: <customer>})
-    db.findOrders(<function>)      
-    db.getCustomerOrders(<customer>)   //Returns all the customer's orders
-    db.deleteCustomer(<customer>)      //Deletes customer's orders and items too.
-    db.getItemOrder(<shipment>)
-    db.getOrderItems(<order>)
+```javascript
+db.getCustomer(id)
+db.newCustomer({name: 'joe', email: 'joe@joe.com'})
+db.newOrder({value: 100, customer: customer})
+db.findOrders(func)      
+db.getCustomerOrders(customer) // Return all the customer's orders
+db.deleteItem(order)           // Delete an order and its items
+db.deleteItem(customer)        // Delete a customer, his orders and their items
+db.getItemOrder(shipment)
+db.getOrderItems(order)
+```
 
 This makes writing your app very intuitive and fast.
 
@@ -80,7 +96,9 @@ There is also an included demo project setup with npm & gulp inside the repo.
 
 # Installation
 
-    npm install sneakerjs --save
+```shell
+npm install sneakerjs --save
+```
 
 # Usage
 
@@ -88,64 +106,78 @@ These steps show you how to get up and running with PouchDB (which can also conn
 
 ##### 1 Include the sources
 
+```html
     <script src="node_modules/angular/angular.min.js"></script>
     <script src="node_modules/pouchdb/dist/pouchdb.min.js"></script>
     <script src="node_modules/sneakerjs/dist/sneakerjs.min.js"></script>
+```
 
 ##### 2 Import SneakerJS into your Angular app
 
-    angular.module('app', ['SneakerJS']);
+```javascript
+angular.module('app', ['SneakerJS']);
+```
 
 ##### 3 Create a SneakerModel instance
 
 The **SneakerModel** object is what you define your collections on. It is also the object on which the generated functions will be attached. I like calling mine **db**:
 
-    app.run(function(SneakerModel){
-      var backend = new PouchDB('my_demo_app')
-      var db = new SneakerModel(backend)
-      db.collection('customer', ['name'])
-      ...
-    });
+```javascript
+app.run(function(SneakerModel){
+  var backend = new PouchDB('my_demo_app')
+  var db = new SneakerModel(backend)
+  db.collection('customer', ['name'])
+  ...
+});
+```
 
 You can attach it to $rootScope to make it directly available in your templates:
 
-    $rootScope.db = db;
+```javascript
+$rootScope.db = db;
+```
     
 A neat trick to make the model available as a service is using JavaScript's **call** on **SneakerModel** passing **this** (which will be your newly instantiated service):
 
-    app.service('db', function(SneakerModel) {
-      var backend = new PouchDB('my_demo_app')
-      SneakerModel.call(this, backend);
-    });
-
+```javascript
+app.service('db', function(SneakerModel) {
+  var backend = new PouchDB('my_demo_app')
+  SneakerModel.call(this, backend);
+});
+```
 You can now inject it into other providers in your app:
 
-    app.controller('Ctrl', function(db) {
-      var customersWithNoOrders = db.findCustomers(function(customer) {
-        return db.getCustomerOrders(customer).length == 0;
-      });
-      ...
-    });
- 
+```javascript
+app.controller('Ctrl', function(db) {
+  var customersWithNoOrders = db.findCustomers(function(customer) {
+    return db.getCustomerOrders(customer).length == 0;
+  });
+  ...
+});
+``` 
 
 ##### 4 Define your initial loading function (optional)
 
 By default, SneakerJS will use **allDocs** as the initial loading function (as it is usually a PouchDB object):
 
-    backend.allDocs({
-      include_docs: true,
-      attachments: false
-    });
+```javascript
+backend.allDocs({
+  include_docs: true,
+  attachments: false
+});
+```
     
 However you can specify the query to exectute when initializing the SneakerModel:
 
-    app.service('db', function(SneakerModel) {
-      var backend = new PouchDB('my_demo_app');
-      var loadFunction = function() {
-        //return a json object similar to allDocs
-      };
-      SneakerModel.call(this, backend, loadFunction);
-    });
+```javascript
+app.service('db', function(SneakerModel) {
+  var backend = new PouchDB('my_demo_app');
+  var loadFunction = function() {
+    //return a json object similar to allDocs
+  };
+  SneakerModel.call(this, backend, loadFunction);
+});
+```
 
 The initial loading function gets called once on **dataReady** (see below).
 
@@ -160,24 +192,27 @@ It is best to do this right after instantiating your SneakerModel, in a section 
 The first call to **db.dataReady()** will call the initial loading function and return a promise, which will resolve once the data is loaded.
 
 Subsequent calls will simply return the same promise. This means you can use it inside controllers to wait for the initial data load to complete:
-   
-    app.controller('Ctrl', function(db) {
-      $scope.ready = false; // use this to hide UI elements...
-      db.dataReady().then(function(){
-        $scope.customers = db.allCustomers(); 
-        $scope.ready = true;
-      });
-      ...
-    });
+
+```javascript
+app.controller('Ctrl', function(db) {
+  $scope.ready = false; // use this to hide UI elements...
+  db.dataReady().then(function(){
+    $scope.customers = db.allCustomers(); 
+    $scope.ready = true;
+  });
+  ...
+});
+```
 
 ##### 7 Peek at the generated functions
 
 Use **db.printInfo()** to print out a list of all the generated functions to the console:
 
-    db.getCustomer()
-    db.newCustomer()
-    ...
-    
+```javascript
+db.getCustomer()
+db.newCustomer()
+...
+```
 
 ##### 8 Start playing!
 
@@ -185,18 +220,20 @@ Once **db.dataReady()** has resolved, you can use the generated functions inside
 
 Here's a page to create/delete customers and their orders for our shopping app based on the definitions at the top of this readme.
 
-    <input ng-model="newCustomerName">
-    <button ng-click="db.newCustomer({name: newCustomerName})">Add</button>
-    <div ng-repeat"customer in db.allCustomers()">
-      {{customer.name}}
-      <button ng-click="db.deleteItem(customer)">Remove</button>
-      <div ng-repeat"order in db.getCustomerOrders(customer)">
-        {{order.value}}
-        <button ng-click="db.deleteItem(order)">Remove</button>
-      </div>
-      <input ng-model="newOrderValue">
-      <button ng-click="db.newOrder({value: newOrderValue, customer: customer})">Add</button>
-    </div>
+```html
+<input ng-model="newCustomerName">
+<button ng-click="db.newCustomer({name: newCustomerName})">Add</button>
+<div ng-repeat"customer in db.allCustomers()">
+  {{customer.name}}
+  <button ng-click="db.deleteItem(customer)">Remove</button>
+  <div ng-repeat"order in db.getCustomerOrders(customer)">
+    {{order.value}}
+    <button ng-click="db.deleteItem(order)">Remove</button>
+  </div>
+  <input ng-model="newOrderValue">
+  <button ng-click="db.newOrder({value: newOrderValue, customer: customer})">Add</button>
+</div>
+```
 
 This saves changes to direct to the database, no extra code needed!
 
@@ -243,35 +280,37 @@ Defines a collection, i.e. a series of objects of the same type.
 
 This is just cosmetic, and only affects the naming of generated functions where the plural would otherwise just be generated by adding **s**, including relationships.
 
-    db.collection('country')
-    db.collection('person', {plural: 'people'})
-    db.oneToMany('country', 'person')
-    ...
-    db.getPerson()
-    db.findPeople()
-    db.getCountryPeople()
-    
+```javascript
+db.collection('country')
+db.collection('person', {plural: 'people'})
+db.oneToMany('country', 'person')
+...
+db.getPerson()
+db.findPeople()
+db.getCountryPeople()
+``` 
 
 ##### About 'proto'
 
 This is a powerfull feature, essentially turning SneakerJS into an ORM.
 
-    var Customer = function() {};
-    //fields will be added after call to "new Customer()"
-    Customer.prototype.getOrderValue = function() {
-      var total = 0;
-      db.getCustomerOrders(this).forEach(function(order){
-        db.getOrderItems(order).forEach(item) {
-          total += item.price;
-        }
-      });
-      return total;
-    };
-    db.collection('customer', {proto: Customer});
-    ...
-    c1 = db.getCustomer('id_0001');
-    c1.getOrderValue();
-    
+```javascript
+var Customer = function() {};
+//fields will be added after call to "new Customer()"
+Customer.prototype.getOrderValue = function() {
+  var total = 0;
+  db.getCustomerOrders(this).forEach(function(order){
+    db.getOrderItems(order).forEach(item) {
+      total += item.price;
+    }
+  });
+  return total;
+};
+db.collection('customer', {proto: Customer});
+...
+c1 = db.getCustomer('id_0001');
+c1.getOrderValue();
+```    
 
 
 ### db.oneToMany(childCollectionName, parentCollectionName, options)
@@ -294,30 +333,35 @@ Defines a one to many relationship between two collections.
 | parentAlias   | string    | The name used for the parent side of the join.
 | cascadeDelete | boolean   | Whether to delete linked child objects when parent is deleted. Defaults to true.
 
-##### Note about aliases
+##### About aliases
 
 Aliases can be used to define multiple relationships of the same type between the same two collections without clashes.
 
-    db.collection('company')
-    db.collection('person', {plural: 'people'})
-    db.oneToMany('company', 'person', {parentAlias: 'employer', childAlias: 'employee')
-    db.oneToMany('company', 'person', {parentAlias: 'favouriteCompany')
+```javascript
+db.collection('company')
+db.collection('person', {plural: 'people'})
+db.oneToMany('company', 'person', {parentAlias: 'employer', childAlias: 'employee')
+db.oneToMany('company', 'person', {parentAlias: 'favouriteCompany')
+```
 
 Aliases affect the generated function names:
 
-    db.getPersonEmployer()
-    db.getCompanyEmployees()
-    db.getPersonFavouriteCompany()
-    db.getCompanyPeople() // careful, this only returns people linked on the second relationship.
-    
+```javascript
+db.getPersonEmployer()
+db.getCompanyEmployees()
+db.getPersonFavouriteCompany()
+db.getCompanyPeople() // careful, this only returns people linked on the second relationship.
+```    
 
 The parentAlias affect how the relationship is stored in the database, so changing it on an existing dataset will break the links.
 
 The parentAlias can also be used when creating child objects:
 
-    employerA = db.getEmployer('id_001');
-    db.newPerson({name: 'Bill', employer: employerA});
-    //This creates a linked between the new person and employerA
+```javascript
+employerA = db.getEmployer('id_001');
+db.newPerson({name: 'Bill', employer: employerA});
+//This creates a linked between the new person and employerA
+```
 
 SneakerJS attempts to prevent ambiguous clashes, but does not currently check for everything.
     
@@ -342,16 +386,36 @@ Defines a many to many relationship between two collections.
 | dbDocumentType   | string  | The name used for the parent side of the join
 
 
-##### Note about aliases
+##### About qualifiers
 
-Aliases can be used to define multiple relationships of the same type between the same two collections without clashes.
+A qualifier can be used to define multiple relationships of the same type between the same two collections without clashes.
 
-Aliases affect the generated function names.
+```javascript
+cat as freidn
+``` 
+
+You can always map the generated functions 
 
 
+## Generated functions
     
+### db.allXyzs(function)
 
-# Status
+Same list
+
+### db.newXyz(data)
+
+### db.getXyz(data)
+
+### db.findXyzs(query)
+
+query can be:
+      a function returning true or false
+      an object like {name: 'deirdre'} -- which returns items whose properties match.
+      an empty object {} -- which returns all items.
+    TODO: what about parent properties?
+
+# Contributing
 
 This project is in Alpha stage. It works great but hasn't been seriously battle tested. 
 
