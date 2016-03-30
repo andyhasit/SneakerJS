@@ -223,10 +223,10 @@ Here's a page to create/delete customers and their orders for our shopping app b
 ```html
 <input ng-model="newCustomerName">
 <button ng-click="db.newCustomer({name: newCustomerName})">Add</button>
-<div ng-repeat"customer in db.allCustomers()">
+<div ng-repeat="customer in db.allCustomers()">
   {{customer.name}}
   <button ng-click="db.deleteItem(customer)">Remove</button>
-  <div ng-repeat"order in db.getCustomerOrders(customer)">
+  <div ng-repeat="order in db.getCustomerOrders(customer)">
     {{order.value}}
     <button ng-click="db.deleteItem(order)">Remove</button>
   </div>
@@ -391,6 +391,8 @@ Defines a many to many relationship between two collections.
 A qualifier can be used to define multiple relationships of the same type between the same two collections without clashes.
 
 ```javascript
+db.collection('person', ['name'])
+db.collection('cat', ['name'])
 db.manyToMany('person', 'cat', {
   qualifier: 'owner'
 });
@@ -430,7 +432,7 @@ db.collection('cat', ['name', 'color'])
 
 SneakerJS will generate the following functions:
 
-### db.newCat(data)
+#### db.newCat(data)
 
 Where 'data' is an object with the fields as in the collection definition.
 
@@ -494,7 +496,7 @@ db.newCat({
 })
 ```
 
-### db.getCat(id)
+#### db.getCat(id)
 
 Gets an object in a collection given its _id.
 
@@ -504,7 +506,7 @@ db.getCat('6TSH8A79D97A')
 // returns {name: 'Mog', color: 'Tabby'}
 ```
 
-### db.findCats(query)
+#### db.findCats(query)
 
 Finds object in a collection.
 
@@ -523,16 +525,28 @@ var catsWithNoFriends = db.findCats(function(cat) {
 ```
 A new array is returned each time.
 
-### db.allCats()
+```javascript
+var a = db.findCats({color: 'Tabby'}) 
+var b = db.findCats({color: 'Tabby'}) 
+a === b  // false
+```
+
+#### db.allCats()
 
 Returns the array containing all objects in the collection. This is the same array object every time, so you can watch it for changes.
+
+```javascript
+var a = db.allCats()
+//add or remove cats
+var b = db.allCats()
+a === b  // true
+```
 
 Do not mess with this array by adding or removing elements. Use **newCat()** and **deleteItem()** functions to manipulate the collection. The array which was returned by **db.allCats()** will be updated, and this is all wrapped in **$q** promises so it will trigger the digest loop.
 
 ## oneToMany functions
 
-
-Given a collection:
+Given this model:
 
 ```javascript
 db.collection('person', ['name'])
@@ -541,18 +555,24 @@ db.collection('dog', ['name', 'breed'])
 
 SneakerJS will generate the following functions:
 
-## db.getDogOwner(dog)
+#### db.getDogOwner(dog)
 
 Returns the child object's parent. This is not a promise, it returns immediately. 
 
-## db.getPersonDogs(person)
+#### db.getPersonDogs(person)
 
 Returns an array of the parent objects's children. This is not a promise, it returns immediately. 
 
 This is the same array object every time, so you can watch it for changes.
  
+```javascript
+var a = db.getPersonDogs(person1)
+//add or remove dogs
+var b = db.getPersonDogs(person1)
+a === b  // true
+```
 
-## db.setDogOwner(dog, owner)
+#### db.setDogOwner(dog, owner)
 
 Sets the child object's parent. Parent can be null.
 
@@ -560,21 +580,86 @@ This function is a promise, but it is wrapped in $q so you can often just call i
 
 ```javascript
 db.setDogOwner(dog, owner)
-// Angular will update the view once the promise resolves, without you having to do anything.
 ```
 
+Angular will update the view once the promise resolves, without you having to do anything.
 
-sneakerjs.js:40 db.getPersonCatsAsOwner
-sneakerjs.js:40 db.getCatPeopleAsOwner
-sneakerjs.js:40 db.addPersonCatAsOwner
-sneakerjs.js:40 db.removePersonCatAsOwner
-sneakerjs.js:40 db.isPersonLinkedToCatAsOwner
-sneakerjs.js:40 db.getPersonCatsAsFriend
-sneakerjs.js:40 db.getCatPeopleAsFriend
-sneakerjs.js:40 db.addPersonCatAsFriend
-sneakerjs.js:40 db.removePersonCatAsFriend
-sneakerjs.js:40 db.isPersonLinkedToCatAsFriend
+## manyToMany functions
 
+Given this model:
+
+```javascript
+db.collection('person', ['name'])
+db.collection('cat', ['name'])
+db.manyToMany('person', 'cat')
+```
+
+SneakerJS will generate the following functions:
+
+#### db.getPersonCats(person)
+
+Returns an array of the left side objects's right side counterparts. This is not a promise, it returns immediately. 
+
+This is the same array object every time, so you can watch it for changes.
+
+#### db.getCatPersons(cat)
+
+Returns an array of the left side objects's right side counterparts. This is not a promise, it returns immediately. 
+
+This is the same array object every time, so you can watch it for changes.
+
+Note, to get **db.getCatPeople()** you simply need to set the plural on the collection:
+```javascript
+db.collection('person', ['name'], {plural: 'people')
+db.collection('cat', ['name'])
+db.manyToMany('person', 'cat')
+...
+db.getCatPeople()
+```
+
+#### db.addPersonCat(person, cat)
+
+Adds a link between the left and right side objects.
+
+This function is a promise, but it is wrapped in $q so you can often just call it as is and angular will update the UI once the promise is resolved.
+
+#### db.removePersonCat(person, cat)
+
+Removes the link between the left and right side objects.
+
+This function is a promise, but it is wrapped in $q so you can often just call it as is and angular will update the UI once the promise is resolved.
+
+## manyToMany functions with qualifier
+
+Given this model:
+
+```javascript
+db.collection('person', ['name'], {plural: 'people')
+db.collection('cat', ['name'])
+db.manyToMany('person', 'cat', {
+  qualifier: 'owner'
+});
+db.manyToMany('person', 'cat', {
+  qualifier: 'friend'
+});
+```
+
+SneakerJS will generate the same functions as above, but with "AsXYZ" appended to the function name:
+
+
+```javascript
+db.getCatPeopleAsOwner
+db.addPersonCatAsOwner
+db.removePersonCatAsOwner
+db.isPersonLinkedToCatAsOwner
+db.getPersonCatsAsFriend
+db.getCatPeopleAsFriend
+db.addPersonCatAsFriend
+db.removePersonCatAsFriend
+db.isPersonLinkedToCatAsFriend
+```
+
+Which behave the same as above.
 
 # Contributing
 
