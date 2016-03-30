@@ -67,26 +67,26 @@ If you'd rather have control over your backend, or use data from another API alt
 
 ##### C) Map all the relationships in memory for lightening fast performance
 
-SneakerJS loads the full data at startup and replicates changes to the database (currently no provision for synchronising changes from the db to client, you have to do that manually, but it's in the pipeline)
-
-It also caches every relationship bi-directionally.
+SneakerJS loads the full data at startup and replicates changes to the database*.It also caches every relationship bi-directionally.
 
 E.g for a one-to-many relationship between **customer** and **order**, it stores the array of orders for each customer, and a reference to the customer against each order, and keeps these updated.
 
-While this may seem trivial, caching relationships in this way can make an application which has many joins between it's collections go over 100 times faster than using map-reduce joins (yes, I've measured this before).
+While this may seem trivial, caching relationships in this way can make an application which has many joins between it's collections and calculations based on those run over 100 times faster than using map-reduce joins (and yes, I've measured this).
 
-What this means it that you can design your collections in a highly normalised relational form and probably not have to worry about performance. Let that sink in for a bit ;-)
+This means you can design your data in a normalised relational form and probably not have to worry about performance. Now that's a refreshing thought.
+
+__*Note:__ SneakerJS doesn't yet replicate changes from the db to client, you have to watch for changes manually via PouchDB's events, so for now SneakerJS is best suited to apps where the data will be edited from a single source. This change is planned in the future.
 
 ##### What else?
 
-SneakerJS takes care of the **angular digest loop** so you don't have to **$scope.$apply()** everywhere. Just call the generated functions and changes will be reflected in the UI once they are confirmed by the database (so it's a bit like firebase but in many cases much faster, and free!)
+SneakerJS takes care of the **angular digest loop** so you don't have to **$scope.$apply()** everywhere. The generated functions will update the UI once change promises have returned from the database.
+
+So it's a bit like firebase but in many cases much faster, and free!
  
 SneakerJS also lets you:
   - Specify constructor functions to initiate collection items, effectively making SneakerJS a mini ORM.
   - Define many-to-many relationships without setting up special tables/collections
   - Use aliases to allow multiple same type relationships between collections
-  
-
 
 ## Demo
 
