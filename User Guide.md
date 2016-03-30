@@ -13,7 +13,6 @@ Feel free to raise pull requests if you find anything is wrong or missing.
 npm install sneakerjs --save
 ```
 
-
 # Getting Started
 
 These steps show you how to get up and running with PouchDB (which can also connect to CouchDB). See [Other Backends](#Other Backends) for how to make it work with other providers.
@@ -68,7 +67,9 @@ app.controller('Ctrl', function(db) {
   });
   ...
 });
-``` 
+```
+
+For most small apps you would just have one SneakerModel running (in which case you're as well wrapping it in a service as above) but there is nothing stopping you having multiple models running. 
 
 ##### 4 Define your initial loading function (optional)
 
@@ -95,7 +96,7 @@ app.service('db', function(SneakerModel) {
 
 The initial loading function gets called once on **dataReady** (see below).
 
-##### 5 Define your model
+##### 5 Define your data structure
 
 Define all your collections, singletons and relationships before calling  **db.dataReady()**.
 
