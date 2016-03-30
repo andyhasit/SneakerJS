@@ -1,3 +1,4 @@
 node_modules
+coverage
 /ignore/*
 npm-debug.log
