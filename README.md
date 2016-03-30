@@ -10,7 +10,7 @@
 <img src="logo.gif" width="250">
 </p>
 
-# SneakerJS
+## SneakerJS
 Entity relationship automation for AngularJS.
 
 [![npm version][npm-version-image]][npm-url]
@@ -18,7 +18,7 @@ Entity relationship automation for AngularJS.
 [![Build Status][travis-image]][travis-url]
 [![Coverage Status][coveralls-image]][coveralls-url]
 
-# What does it do?
+## What does it do?
 
 You define collections and the relationships between them:
 
@@ -87,27 +87,27 @@ SneakerJS also:
   - Takes care of the **angular digest loop** so you don't have to **$scope.$apply()** everywhere.
 
 
-# Demo
+## Demo
 
 Here is a simple [Plunkr](https://embed.plnkr.co/KY2pgdSpg3KWxQrWQhSC/). 
 There is also a [demo project](demos/demo_1) included.
 
-# Installation
+## Installation
 
 ```shell
 npm install sneakerjs --save
 ```
 
-# User Guide
+## User Guide
 
 Yes, there is a complete [user guide](User Guide.md)!
 
 
-# Reporting bugs
+## Reporting bugs
 
 Please report any issues in the [issue tracker](https://github.com/andyhasit/SneakerJS/issues).
 
-# Running test
+## Running test
 
 Tests written in Jasmine, run with karma, and code coverage checked with istanbul.
 
@@ -115,7 +115,7 @@ Tests written in Jasmine, run with karma, and code coverage checked with istanbu
 
 Of course, it uses [karma-nicer-reporter](https://github.com/andyhasit/karma-nicer-reporter) ;-)
 
-# Licence
+## Licence
 
 MIT
 
