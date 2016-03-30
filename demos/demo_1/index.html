@@ -32,21 +32,21 @@
               <label>Add a person</label>
               <br/>
               <input type="text" class="form-control" ng-model="newPersonName" placeholder="Name">
-              <button class="btn btn-success" ng-click="model.newPerson({name: newPersonName})">Add</button>
+              <button class="btn btn-success" ng-click="db.newPerson({name: newPersonName})">Add</button>
             </div>
             <br/>
             <div class="form-group">
               <label>Add a cat</label>
               <br/>
               <input type="text" class="form-control" ng-model="newCatName" placeholder="Name">
-              <button class="btn btn-success" ng-click="model.newCat({name: newCatName})">Add</button>
+              <button class="btn btn-success" ng-click="db.newCat({name: newCatName})">Add</button>
             </div>
             <br/>
             <div class="form-group">
               <label>Add a dog</label>
               <br/>
               <input type="text" class="form-control" ng-model="newDogName" placeholder="Name">
-              <button class="btn btn-success" ng-click="model.newDog({name: newDogName})">Add</button>
+              <button class="btn btn-success" ng-click="db.newDog({name: newDogName})">Add</button>
             </div>
           </div>
         </div>
@@ -58,16 +58,16 @@
               <select class="form-control"
                  placeholder="Owner"
                  ng-model="setDogOwnerPerson"
-                 ng-options="item as item.name for item in model.allPeople()"
+                 ng-options="item as item.name for item in db.allPeople()"
                  ng-change="alert(5);">
               </select>
               <select class="form-control"
                  placeholder="Dog"
                  ng-model="setDogOwnerDog"
-                 ng-options="item as item.name for item in model.allDogs()"
+                 ng-options="item as item.name for item in db.allDogs()"
                  >
               </select>
-              <button class="btn btn-success" ng-click="model.setDogOwner(setDogOwnerDog, setDogOwnerPerson)">Apply</button>
+              <button class="btn btn-success" ng-click="db.setDogOwner(setDogOwnerDog, setDogOwnerPerson)">Apply</button>
             </div>
             <br/>
             <div class="form-group">
@@ -76,19 +76,19 @@
               <select class="form-control"
                  placeholder="Owner"
                  ng-model="linkCatToPersonAsOwnerPerson"
-                 ng-options="item as item.name for item in model.allPeople()"
+                 ng-options="item as item.name for item in db.allPeople()"
                  ng-change="alert(5);">
               </select>
               <select class="form-control"
                  placeholder="Dog"
                  ng-model="linkCatToPersonAsOwnerCat"
-                 ng-options="item as item.name for item in model.allCats()"
+                 ng-options="item as item.name for item in db.allCats()"
                  >
               </select>
               <button class="btn btn-success"
-                ng-click="model.addPersonCatAsOwner(linkCatToPersonAsOwnerPerson, linkCatToPersonAsOwnerCat)">Link</button>
+                ng-click="db.addPersonCatAsOwner(linkCatToPersonAsOwnerPerson, linkCatToPersonAsOwnerCat)">Link</button>
               <button class="btn btn-success"
-                ng-click="model.removePersonCatAsOwner(linkCatToPersonAsOwnerPerson, linkCatToPersonAsOwnerCat)">Unlink</button>
+                ng-click="db.removePersonCatAsOwner(linkCatToPersonAsOwnerPerson, linkCatToPersonAsOwnerCat)">Unlink</button>
             </div>
             <br/>
             <div class="form-group">
@@ -97,19 +97,19 @@
               <select class="form-control"
                  placeholder="Owner"
                  ng-model="linkCatToPersonAsFriendPerson"
-                 ng-options="item as item.name for item in model.allPeople()"
+                 ng-options="item as item.name for item in db.allPeople()"
                  ng-change="alert(5);">
               </select>
               <select class="form-control"
                  placeholder="Dog"
                  ng-model="linkCatToPersonAsFriendCat"
-                 ng-options="item as item.name for item in model.allCats()"
+                 ng-options="item as item.name for item in db.allCats()"
                  >
               </select>
               <button class="btn btn-success"
-                ng-click="model.addPersonCatAsFriend(linkCatToPersonAsFriendPerson, linkCatToPersonAsFriendCat)">Link</button>
+                ng-click="db.addPersonCatAsFriend(linkCatToPersonAsFriendPerson, linkCatToPersonAsFriendCat)">Link</button>
               <button class="btn btn-success"
-                ng-click="model.removePersonCatAsFriend(linkCatToPersonAsFriendPerson, linkCatToPersonAsFriendCat)">Unlink</button>
+                ng-click="db.removePersonCatAsFriend(linkCatToPersonAsFriendPerson, linkCatToPersonAsFriendCat)">Unlink</button>
             </div>
           </div>
         </div>
@@ -126,33 +126,33 @@
               <th>Dogs</th>
               <th class="text-right">Actions</th>
             </tr>
-            <tr ng-repeat="person in model.allPeople()">
+            <tr ng-repeat="person in db.allPeople()">
               <td>
                 <h4>{{person.name}}</h4>
               </td>
               <td>
                 <ul>
-                  <li ng-repeat="cat in model.getPersonCatsAsOwner(person) track by $index">
+                  <li ng-repeat="cat in db.getPersonCatsAsOwner(person) track by $index">
                     {{cat.name}}
                   </li>
                 </ul>
               </td>
               <td>
                 <ul>
-                  <li ng-repeat="cat in model.getPersonCatsAsFriend(person) track by $index">
+                  <li ng-repeat="cat in db.getPersonCatsAsFriend(person) track by $index">
                     {{cat.name}}
                   </li>
                 </ul>
               </td>
               <td>
                 <ul>
-                  <li ng-repeat="dog in model.getPersonDogs(person) track by $index">
+                  <li ng-repeat="dog in db.getPersonDogs(person) track by $index">
                     {{dog.name}}
                   </li>
                 </ul>
               </td>
               <td>
-                <button class="btn btn-danger pull-right" ng-click="model.deleteItem(person)">X</button>
+                <button class="btn btn-danger pull-right" ng-click="db.deleteItem(person)">X</button>
               </td>
             </tr>
           </table>
@@ -169,26 +169,26 @@
               <th>Friends</th>
               <th class="text-right">Actions</th>
             </tr>
-            <tr ng-repeat="cat in model.allCats()">
+            <tr ng-repeat="cat in db.allCats()">
               <td>
                 <h4>{{cat.name}}</h4>
               </td>
               <td>
                 <ul>
-                  <li ng-repeat="person in model.getCatPeopleAsOwner(cat) track by $index">
+                  <li ng-repeat="person in db.getCatPeopleAsOwner(cat) track by $index">
                     {{person.name}}
                   </li>
                 </ul>
               </td>
               <td>
                 <ul>
-                  <li ng-repeat="person in model.getCatPeopleAsFriend(cat) track by $index">
+                  <li ng-repeat="person in db.getCatPeopleAsFriend(cat) track by $index">
                     {{person.name}}
                   </li>
                 </ul>
               </td>
               <td>
-                <button class="btn btn-danger pull-right" ng-click="model.deleteItem(cat)">X</button>
+                <button class="btn btn-danger pull-right" ng-click="db.deleteItem(cat)">X</button>
               </td>
             </tr>
           </table>
@@ -204,15 +204,15 @@
               <th>Owner</th>
               <th class="text-right">Actions</th>
             </tr>
-            <tr ng-repeat="dog in model.allDogs()">
+            <tr ng-repeat="dog in db.allDogs()">
               <td>
                 <h4>{{dog.name}}</h4>
               </td>
               <td>
-                {{model.getDogOwner(dog).name}}
+                {{db.getDogOwner(dog).name}}
               </td>
               <td>
-                <button class="btn btn-danger pull-right" ng-click="model.deleteItem(dog)">X</button>
+                <button class="btn btn-danger pull-right" ng-click="db.deleteItem(dog)">X</button>
               </td>
             </tr>
           </table>

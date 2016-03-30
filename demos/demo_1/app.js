@@ -6,26 +6,23 @@ This mini demo shows how to use SneakerJS as at version 0.2.2
 */
 
 var app = angular.module('app', ['SneakerJS']);
-var c = console;
 
-app.run(function(model) {
+app.service('db', function(SneakerModel) {
   /*
   First create an instance of PouchDB.
   This stores your data to a local database in your browser.
-  */
-  var db = new PouchDB('sneakerjs_demo_1');
-  /*
   Note that you could also set up automatic replication to a CouchDB instance:
-    db.replicate.to('http://example.com/mydb');
+    backend.replicate.to('http://example.com/mydb');
   Or point PouchDB directly to a CouchDB url:
-    var db = new PouchDB('http://127.0.0.1:5984/sneakerjs_demo_1');
+    var backend = new PouchDB('http://127.0.0.1:5984/sneakerjs_demo_1');
   */
-
+  var backend = new PouchDB('sneakerjs_demo_1');
   /*
-  "model" is a service in the SneakerJS module, which we injected above.
+  "db" is a service in the SneakerJS module, which we injected above.
   It is the only object you interact with
   */
-  model.initialize(db);
+  SneakerModel.call(this, backend);
+  var db = this;
 
   /*
   (This step is entirely optional)
@@ -35,7 +32,7 @@ app.run(function(model) {
   */
   var Person = function() {};
   Person.prototype.howManyCats = function() {
-    var catCount = model.getPersonCats(this).length;
+    var catCount = db.getPersonCats(this).length;
     'My name is ' + this.name + ' and I have ' + catCount + ' cats.';
   };
 
@@ -49,9 +46,9 @@ app.run(function(model) {
   PouchDb doesn't like that.
   All items get an _id and _rev field added automatically.
   */
-  model.collection('cat', ['name']);
-  model.collection('dog', ['name']);
-  model.collection('person', ['name'], {
+  db.collection('cat', ['name']);
+  db.collection('dog', ['name']);
+  db.collection('person', ['name'], {
     plural: 'people', // Means we get findPeople() instead of findPersons()
     proto: Person,   // Means every item will be initialized with "new Person()"
   });
@@ -76,61 +73,59 @@ app.run(function(model) {
   Similarly if you want more than one parent-child relationships, modify the
   the parent or child aliases.
   */
-  model.join('person', 'dog', {parentAlias: 'owner'});
-  model.join('person', 'cat', {
-    type:'many-to-many',
+  db.oneToMany('person', 'dog', {parentAlias: 'owner'});
+  db.manyToMany('person', 'cat', {
     qualifier: 'owner'
   });
-  model.join('person', 'cat', {
-    type:'many-to-many',
+  db.manyToMany('person', 'cat', {
     qualifier: 'friend'
   });
 
   /*
   Here we print out a list of all the functions SneakerJS has generated on the
-  model object to the console. Hit F12 in your browser and have a look!
+  db object to the console. Hit F12 in your browser and have a look!
   */
-  model.printInfo();
+  db.printInfo();
 
   /*
   You should see something like this:
 
-      model.newCat
-      model.getCat
-      model.findCats
-      model.allCats
-      model.newDog
-      model.getDog
-      model.findDogs
-      model.allDogs
-      model.newPerson
-      model.getPerson
-      model.findPeople
-      model.allPeople
-      model.getDogOwner
-      model.getPersonDogs
-      model.setDogOwner
-      model.getPersonCatsAsOwner
-      model.getCatPeopleAsOwner
-      model.addPersonCatAsOwner
-      model.removePersonCatAsOwner
-      model.isPersonLinkedToCatAsOwner
-      model.getPersonCatsAsFriend
-      model.getCatPeopleAsFriend
-      model.addPersonCatAsFriend
-      model.removePersonCatAsFriend
-      model.isPersonLinkedToCatAsFriend
+      db.newCat
+      db.getCat
+      db.findCats
+      db.allCats
+      db.newDog
+      db.getDog
+      db.findDogs
+      db.allDogs
+      db.newPerson
+      db.getPerson
+      db.findPeople
+      db.allPeople
+      db.getDogOwner
+      db.getPersonDogs
+      db.setDogOwner
+      db.getPersonCatsAsOwner
+      db.getCatPeopleAsOwner
+      db.addPersonCatAsOwner
+      db.removePersonCatAsOwner
+      db.isPersonLinkedToCatAsOwner
+      db.getPersonCatsAsFriend
+      db.getCatPeopleAsFriend
+      db.addPersonCatAsFriend
+      db.removePersonCatAsFriend
+      db.isPersonLinkedToCatAsFriend
 
   And that is it!!!
 
   You can now call the custom functions like:
 
-    model.newPerson({name: 'Alice'})  // This returns a promise, because it has to save to the db
-    model.deleteItem(person)          // As does this
-    model.saveItem(cat)               // And any other call that makes changes to the db
-    model.setCatOwner(cat)            // Including setting relationships
-    model.getPersonCats(person)       // But this doesn't. It just returns a list of cats right away.
-    model.findCats({color: 'black'})  // As does this (note: you could also pass it a function)
+    db.newPerson({name: 'Alice'})  // This returns a promise, because it has to save to the db
+    db.deleteItem(person)          // As does this
+    db.saveItem(cat)               // And any other call that makes changes to the db
+    db.setCatOwner(cat)            // Including setting relationships
+    db.getPersonCats(person)       // But this doesn't. It just returns a list of cats right away.
+    db.findCats({color: 'black'})  // As does this (note: you could also pass it a function)
 
   All the relationships are mapped bi-directionally in memory making cross
   join queries orders of magnitude faster than map-reduce.
@@ -142,33 +137,27 @@ app.run(function(model) {
   */
 });
 
-function safeApply(scope, fn) {
-    (scope.$$phase || scope.$root.$$phase) ? fn() : scope.$apply(fn);
-}
-
-app.controller('Ctrl', function($scope, $timeout, model) {
+app.controller('Ctrl', function($scope, db) {
   $scope.newPersonName = '';
   $scope.newCatName = '';
 
   /*
-  Here we call model.dataReady() which loads all the data from PouchDb using
+  Here we call db.dataReady() which loads all the data from PouchDb using
   allDocs, or the query function.
   It returns a promise which lets you know when the data is loaded. Subsequent
   calls have no side-effects and will simply resolve.
 
   Putting this in all of your controllers ensures that what you bind to the scope
   actually exists.
-  You will need to call $scope.$digest();
 
-  In our scenario we have just bound the model service to a scope variable,
+  In our scenario we have just bound the db service to a scope variable,
   meaning we can call the collection functions directly from the HTML.
 
   See index.html
   */
 
-  model.dataReady().then(function() {
-    $scope.model = model;
-    $scope.$digest();
+  db.dataReady().then(function() {
+    $scope.db = db;
   });
 
 });
