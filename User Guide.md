@@ -1,98 +1,11 @@
-[npm-url]: https://npmjs/package/sneakerjs
-[npm-version-image]: https://badge.fury.io/js/sneakerjs.svg
-[npm-downloads-image]: https://img.shields.io/npm/dt/sneakerjs.svg
-[travis-image]: https://img.shields.io/travis/andyhasit/SneakerJS.svg
-[travis-url]: https://travis-ci.org/andyhasit/SneakerJS
-[coveralls-image]: https://img.shields.io/coveralls/andyhasit/SneakerJS.svg
-[coveralls-url]: https://coveralls.io/github/andyhasit/SneakerJS
 
 <p align="center">
 <img src="logo.gif" width="250">
 </p>
 
-# SneakerJS
-Entity relationship automation for AngularJS.
+# SneakerJS User Guide
 
-[![npm version][npm-version-image]][npm-url]
-[![npm downloads][npm-downloads-image]][npm-url]
-[![Build Status][travis-image]][travis-url]
-[![Coverage Status][coveralls-image]][coveralls-url]
-
-# What does it do?
-
-You define collections and the relationships between them:
-
-```javascript
-/*
-A shopping app has customers
-Each customer has multiple orders
-Each order has multiple items
-*/
-db.collection('customer', ['name', 'email'])
-db.collection('order', ['value', 'status'])
-db.collection('item', ['description', 'price'])
-db.oneToMany('customer', 'order')
-db.oneToMany('order', 'item')
-/*
-We can do a lot more than this, such as:
-  - specify constructor functions to initiate collection items
-  - many-to-many
-  - relationship aliases
-*/
-```    
-    
-SneakerJS will then:
-
-##### 1 Generate cleverly named functions
-
-Some of the functions SneakerJS will generate given the above definitions:
-
-```javascript
-db.getCustomer(id)
-db.newCustomer({name: 'joe', email: 'joe@joe.com'})
-db.newOrder({value: 100, customer: customer})
-db.findOrders(func)      
-db.getCustomerOrders(customer) // Return all the customer's orders
-db.deleteItem(order)           // Delete an order and its items
-db.deleteItem(customer)        // Delete a customer, his orders and their items
-db.getItemOrder(shipment)
-db.getOrderItems(order)
-```
-
-This makes writing your app very intuitive and fast.
-
-##### 2 Save changes to your data
-
-Those functions save any changes to the database, and removes the need for you to set up extra fields just to store joins, or extra collections just for many-to-many joins.
-
-SneakerJS works out of the box with [PouchDB](https://pouchdb.com/) (Which can connect to [CouchDB](http://couchdb.apache.org/)) but you can easily make it work with other APIs.
-
-##### 3 Map all the relationships in-memory
-
-A data model which has a dozen collections and relationships often performs very poorly when using map-reduce joins, meaning you have to implement some form of relationship caching to salvage performance, which means extra code, planning, testing, and sources of error.
-
-SneakerJS caches every relationship bi-directionally. So for the **customer > order** relationship it stores an array of orders against each customer, and a reference to the customer against every order, and updates these as changes are made or items deleted.
-
-This means SneakerJS often performs extremely well with relatively complex models, without having to add a custom caching strategy.
-
-
-# What is it good for?
-
-SneakerJS works by loading all the data from the initial query, storing it in memory, and replicating changes to the db. It does not yet have the capacity to respond to changes from the source to the client (but PouchDB can notify your app when this happens).
-
-Therefore SneakerJS is best for cases where the data is only edited by one client at a time, such as:
-
-  - Personal data applications (Calendar, Organisers, Planners)
-  - Document-based applications (Writing software?)
-  - Management systems where users obtain a lock on a dataset (e.g. a project, data model)
- 
-Although the intended usage is to load on SneakerModel for your whole app, there is nothing stopping you having multiple models loaded.
-
-# Demo
-
-Here is a simple [Plunkr](https://embed.plnkr.co/KY2pgdSpg3KWxQrWQhSC/).
-
-There is also an included demo project setup with npm & gulp inside the repo.
+Feel free to raise pull requests if you find anything is wrong or missing.
 
 # Installation
 
@@ -100,7 +13,8 @@ There is also an included demo project setup with npm & gulp inside the repo.
 npm install sneakerjs --save
 ```
 
-# Usage
+
+# Getting Started
 
 These steps show you how to get up and running with PouchDB (which can also connect to CouchDB). See [Other Backends](#Other Backends) for how to make it work with other providers.
 
@@ -238,6 +152,7 @@ Here's a page to create/delete customers and their orders for our shopping app b
 This saves changes to direct to the database, no extra code needed!
 
 SneakerJS's changes are wrapped in **$q** promises, meaning they will trigger Angular's digest cycle, so there is no need to use an additional layer such as [angular-pouchdb](https://github.com/angular-pouchdb/angular-pouchdb).
+
 
 # API (functions on SneakerModel)
 
@@ -692,10 +607,3 @@ var DbSpy = function(databaseName) {
 ...
 SneakerModel(new DbSpy('demo_db'));
 ```
-
-# Contributing
-
-This project is in Alpha stage. It works great but hasn't been seriously battle tested. 
-
-Please report any issue you may find :-)
-
