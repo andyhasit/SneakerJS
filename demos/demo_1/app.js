@@ -1,8 +1,5 @@
 /*
-Andrew Buchan - 20/03/2016
---------------------------
-This mini demo shows how to use SneakerJS as at version 0.2.2
-
+Demo showing how to use SneakerJS
 */
 
 var app = angular.module('app', ['SneakerJS']);
