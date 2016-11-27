@@ -1,4 +1,3 @@
-
 angular.module('SneakerJS', []);
 
 angular.module('SneakerJS').factory('SneakerModel', function($q, SnjsCollection, 
@@ -19,11 +18,39 @@ angular.module('SneakerJS').factory('SneakerModel', function($q, SnjsCollection,
     self.__dataReady = undefined;
     self.changeCount = 0;
 
+    /*Must be a better way than __initializingComplete, what if load had a return value?
+    If dataReady returns __initializePromise instead of $q.when() it is really slow, even 
+    though __initializePromise is already resolved.
+    Important thing if making changes: 
+      - dataReady will likely be called repeatedly throughout the app
+      - dataReady may be called while still loading
+      */
+
     self.dataReady = function() {
-      if (self.__dataReady === undefined) {
-        self.__dataReady = self.__initializeModel();
+      if (self.__initializingComplete) {
+        return $q.when();// self.__initializePromise;
+      } else{
+        if (self.__initializePromise === undefined) {
+          self.__initializePromise = self.__getInitializedPromise();
+        }
+        return self.__initializePromise;
       }
-      return self.__dataReady;
+    };
+
+    self.__getInitializedPromise = function() {
+      return self.__loadQuery().then(function (result) {
+        console.log('Loading SneakerJS...');
+        console.log('Found ' + result.rows.length + ' documents');
+        angular.forEach(result.rows, function(row){
+          self.__addDocumentToCollection(row.doc);
+        });
+        angular.forEach(self.__containers, function(container) {
+          container.postInitialLoading();
+        });
+        self.__initializingComplete = true;
+      }).catch(function (err) {
+        console.log(err);
+      });
     };
 
     self.reload = function() {
@@ -181,18 +208,6 @@ angular.module('SneakerJS').factory('SneakerModel', function($q, SnjsCollection,
       }
     };
 
-    self.__initializeModel = function() {
-      return self.__loadQuery().then(function (result) {
-        angular.forEach(result.rows, function(row){
-          self.__addDocumentToCollection(row.doc);
-        });
-        self.__postInitialLoading();
-        return result.rows.length;
-      }).catch(function (err) {
-        console.log(err);
-      });
-    };
-
     self.__addDocumentToCollection = function(document) {
       var dbDocumentType = document.type;
       if (dbDocumentType) {
@@ -206,12 +221,6 @@ angular.module('SneakerJS').factory('SneakerModel', function($q, SnjsCollection,
       } else {
         console.log('Could not load document \"' + document._id + '\" as it has no \"type\" field.');
       }
-    };
-
-    self.__postInitialLoading = function() {
-      angular.forEach(self.__containers, function(container) {
-        container.postInitialLoading();
-      });
     };
   
   };

@@ -112,6 +112,7 @@ angular.module('SneakerJS').factory('SnjsCollection', function(SnjsUtil, $q, Snj
     }
     return self.__postAndLoad(doc).then(function (newItem) {
       for (var alias in relationshipsToLink) {
+        var parentItem = relationshipsToLink[alias];//TODO: add tp source.
         self.__parentRelationships[alias].linkNewlyLoadedChildToParent(newItem, parentItem);
       }
       return newItem;
