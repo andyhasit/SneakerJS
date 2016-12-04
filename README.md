@@ -11,7 +11,7 @@
 </p>
 
 ## SneakerJS
-Entity relationship automation for AngularJS.
+Entity relationship magic for AngularJS and PouchDB.
 
 [![npm version][npm-version-image]][npm-url]
 [![npm downloads][npm-downloads-image]][npm-url]
@@ -19,74 +19,79 @@ Entity relationship automation for AngularJS.
 
 ## What does it do?
 
-You define collections and the relationships between them:
+Well it's simple, you just:
+
+* Create a local PouchDB database
+* Define your model (collections + relationships) using Sneaker's simple API.
+
+SneakerJS will then:
+
+* Load the collections in memory and _bi-directionally_ map the relationships for super fast querying.
+* Generate intelligently named functions to work with your collections and relationships.
+
+What this means is:
+
+* You can write concise, readable code using your domain language.
+* You can query collections and relationships directly in your views (no need for services or controllers) and it will all be lightening fast.
+* Changes will be automatically saved to your local database (and optionally synchronized with a remote CouchDB) and will update your views without you having to call __\$digest()__ or __\$apply()__ and this will be lightening fast too.
+
+
+* You have just saved yourself a lot of boilerplate code to achieve the same result.
+
+To understand the full awesomness, and how much typing this saves you, it is best to study a small example. 
+
+### A Small Example
+
+Consider a blog platform with __posts__, __comments__, and __tags__. All you need to do is:
+
+- Create the PouchDB
+- Define our collections (__posts__, __comments__, and __tags__) and fields
+- Define the relationships between the collections
+- Save your model as __db__ on __$rootScope__ (optional, just for convenience)
 
 ```javascript
-/*
-A shopping app has customers
-Each customer has multiple orders
-Each order has multiple items
-*/
-db.collection('customer', ['name', 'email'])
-db.collection('order', ['value', 'status'])
-db.collection('item', ['description', 'price'])
-db.oneToMany('customer', 'order')
-db.oneToMany('order', 'item')
-
-// This is a simple example, you can do much more
-
-```    
-    
-### From this SneakerJS will:
-
-##### A) Generate specially named functions for you to work with
-
-These are all generated based on the names of your collections:
-
-```javascript
-db.getCustomer(id)
-db.newCustomer({name: 'joe', email: 'joe@joe.com'})
-db.newOrder({value: 100, customer: customer})
-db.findOrders(func)      
-db.getCustomerOrders(customer) // Return all the customer's orders
-db.deleteItem(order)           // Delete an order and its items
-db.deleteItem(customer)        // Delete a customer, his orders and their items
-db.getItemOrder(shipment)
-db.getOrderItems(order)
+var app = angular.module('app', ['SneakerJS']);
+app.run(function(SneakerModel, $rootScope) {
+  var database = new PouchDB('my_local_database');
+  var db = new SneakerModel(database);
+  db.collection('post', ['title', 'datetime', 'text']);
+  db.collection('comment', ['datetime', 'text']);
+  db.collection('tag', ['name']);
+  db.oneToMany('post', 'comment');
+  db.manyToMany('post', 'tag');
+  db.dataReady().then(function() {
+    $rootScope.db = db;
+  });
+});
 ```
 
-This makes writing your app very intuitive and fast.
+You can then write template code using the __intelligently generated__ functions: 
 
-##### B) Take care of storing your data
+```html
+<div ng-app="app">
+  <div ng-repeat="post in db.allPosts()">
+    <h3>{{post.title}}</h3>
+    This post has {{db.getPostComments(post).length}} comments.<br/>
+    <h5>Tags:</h5>
+    <span ng-repeat="tag in db.getPostTags(post)">{{tag.name}}</span>
+  </div>
+</div>
+```
 
-If using [PouchDB](https://pouchdb.com/) (which can also connect to [CouchDB](http://couchdb.apache.org/)) then your data will automatically be persisted in a structure which works well for single-user apps.
+A few notes:
 
-You don't need to worry about foreign keys for one-to-many joins, or dedicated collections for many-to-many joins. In fact you don't need to do anything other than define your collections and start using the functions (See this [Plunkr](https://embed.plnkr.co/KY2pgdSpg3KWxQrWQhSC/))
-
-If you'd rather have control over your backend, or use data from another API altogether, no problem! There is an easy way to intercept the CRUD calls, so you can use SneakerJS in the front-end with any API you like at the back-end (see [User Guide](User Guide.md))
-
-##### C) Map all the relationships in memory for lightening fast performance
-
-SneakerJS loads the full data at startup and replicates changes to the database*.It also caches every relationship bi-directionally.
-
-E.g for a one-to-many relationship between **customer** and **order**, it stores the array of orders for each customer, and a reference to the customer against each order, and keeps these updated.
-
-While this may seem trivial, caching relationships in this way can make an application which has many joins between it's collections and calculations based on those run over 100 times faster than using map-reduce joins (and yes, I've measured this).
-
-This means you can design your data in a normalised relational form and probably not have to worry about performance. Now that's a refreshing thought.
-
-__*Note:__ SneakerJS doesn't yet replicate changes from the db to client, you have to watch for changes manually via PouchDB's events, so for now SneakerJS is best suited to apps where the data will be edited from a single source. This change is planned in the future.
-
-##### What else?
-
-SneakerJS takes care of the **angular digest loop** so you don't have to **$scope.$apply()** everywhere. The generated functions will update the UI once change promises have returned from the database.
-
-So it's a bit like firebase but in many cases much faster, and free!
- 
-SneakerJS also lets you:
-  - Specify constructor functions to initiate collection items, effectively making SneakerJS a mini ORM.
-  - Define many-to-many relationships without setting up special tables/collections
-  - Use aliases to allow multiple same type relationships between collections
+* The functions __allPosts()__, __getPostComments()__ and __getPostTags()__ were all generated by SneakerJS according to the names of your collections (but you can override these).
+* Query functions return actual objects and arrays, not promises (otherwise this code would not be possible).
+* These queries are super fast, as each parent-child relationship is cached bi-directionally in memory (in deeply nested cases this can be over 100x faster than map-reduce!)
+* Did you notice we didn't even need a _controller_ or _service_ for this page?
+* SneakerJS will also generate __newPost()__, __addPostTag()__, __removePostTag()__ etc... (note: functions which modify data return promises)
+* Because it's [PouchDB](https://pouchdb.com/), you can synchronise your local db with a remote CouchDB with a single line of code.
+* Passing a mock [PouchDB](https://pouchdb.com/) object to route calls to your API instead of the local database is trivial.
+* You can specify a prototype object for a collection (every item will get instantiated to it) allowing for powerful behaviour.
+* If you do `SneakerModel.call(this, database)` inside a service instead of in `app.run()` then the generated functions will be attached to that service, which some might prefer.
+* You can override the generated functions (e.g. you might want __newPost()__ to do some additional stuff)
+* You can define various relationships like one-to-many, many-to-many (without having to create an intermediate collection) and also singleton objects instead of collections (e.g. for user settings)
+* You can have multiple relationships between the same two collections using different qualifiers, e.g. __setPostUserAsAuthor()__ and __setPostUserAsReviewer()__.
 
 ## Demo
 
@@ -101,7 +106,7 @@ npm install sneakerjs --save
 
 ## User Guide
 
-Yes, there is a complete [user guide](User Guide.md)!
+Yes, there is a complete [User Guide](User Guide.md)!
 
 
 ## Reporting bugs
@@ -110,11 +115,11 @@ Please report any issues in the [issue tracker](https://github.com/andyhasit/Sne
 
 ## Running test
 
-Tests written in Jasmine, run with karma, and code coverage checked with istanbul.
+Tests are written in Jasmine, run with Karma, and code coverage checked with Istanbul.
 
     npm test
 
-Of course, it uses [karma-nicer-reporter](https://github.com/andyhasit/karma-nicer-reporter) ;-)
+Tests currently use [karma-nicer-reporter](https://github.com/andyhasit/karma-nicer-reporter).
 
 ## Licence
 
